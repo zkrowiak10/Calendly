@@ -1,12 +1,3 @@
-
-
-
-$("#return").text('Jquery!')
-$('#logout').hide()
-$('#logout').click(logout)
-$('#login').click(syncAccount)
-$('#getStuff').click(calendars)
-
 //config
 var authEndpoint = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?";
 var redirectUri = chrome.identity.getRedirectURL("outlook");
@@ -16,29 +7,39 @@ var calendar_url = 'https://graph.microsoft.com/v1.0/me/calendarview?'
 
 var appId = "d25c3df7-f3bc-48f3-ba05-b395304067e7";
 var tokenObj = new Object();
-chrome.storage.sync.get('tokenObj', (data) =>{
-  if (typeof data['tokenObj'] == 'undefined'){console.log("the token object is undefined, login required",data)
-    return}
-  else{
-    console.log('logged in',data)
-    tokenObj=data.tokenObj;
-    $('#logout').show();
-    $('#login').hide();
-  }
 
+$('document').ready(()=>{
+  chrome.storage.sync.get('tokenObj', function(data){
+    
+    if (typeof data['tokenObj'] == 'undefined'){
+      console.log("the token object is undefined, login required",data['tokenObj'])
+      loadingView()
+      return}
+    else{
+      console.log('logged in',data)
+      tokenObj=data.tokenObj;
+      $('#logout').show();
+      $('#login').hide();
+      loadingView();
+    }
+  })
 })
 
-
+date(1)
 function syncAccount(){
     console.log('beginning')
+    loadingView();
     chrome.storage.sync.get('tokenObj',function(data){
         if (typeof data[tokenObj] == 'undefined'){            
             let requestURL = {'url': buildAuthUrl(), 'interactive':true}
             chrome.identity.launchWebAuthFlow(requestURL,function(response){
                 handleTokenResponse(response);
                 chrome.storage.sync.set({'tokenObj':tokenObj})
+                chrome.storage.sync.set({loggedIn:true})
+                console.log('stored')
                 $('#login').hide();
                 $('#logout').show();
+                loadingView();
             })
         }
         else{
@@ -49,6 +50,7 @@ function syncAccount(){
             console.log(data)
             tokenObj=data.tokenObj
             console.log(JSON.toString(tokenObj))
+            loadingView();
         }
     })
 }
@@ -260,33 +262,22 @@ function calendars(){
 }).done(function(data){
   console.log("the results of calendar query are:",data)
 })}
-/*base = 'https://wordstream.my.salesforce.com/search/SearchResults?searchType=2&str=';
-search = 'josh@brookslawgroup.com';
-let target = encodeURI(base+search);
 
-fetch(target, {credentials: "include", mode: 'cors'}).then(function(response) {
-    console.log("Response:");
-    console.log(response)
-    return response.text()})
-    .then(function(text){
-        //console.log(text)
-        let parser = new DOMParser();
-        doc = parser.parseFromString(text, "text/html");
-        let hrf = doc.getElementById('Account_body').getElementsByTagName('table')[0].rows[1].cells[1].getElementsByTagName('a')[0].getAttribute('href');
-        console.log(hrf)
-        /*fetch(hrf.getAttribute('href'), {credentials: "include", mode: 'cors'})
-            .then(response=> {return response.text})
-            .then(page=>{
-                let html = parser.parseFromString(page,"text/html")
-                html.getElementById("0010y00001ZAdI4_00N80000004l7nV_body")
-                .getElementsByClassName("list")[0]
-                .rows[1]
-                .cells[1]
-                .innerText
-            
-            })
-    
-        
-            
-        
-    })*/
+function date(dayRange){
+  let date = new Date();
+  let today = {year: date.getFullYear().toString(),
+    month: date.getMonth().toString(),
+    day: date.getDay().toString(),
+    time: "T00:00:00"
+  }
+  todayString = [today.year,today.month,today.day,today.time].join('-')
+ console.log(todayString)
+  
+  let tomorrow = date.getFullYear() + date.getMonth() + date.getDay() + "T00:00:00";
+  console.log(todayString)
+
+}
+
+//parse datetime objects
+
+
