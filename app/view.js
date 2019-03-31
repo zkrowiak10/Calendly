@@ -2,11 +2,11 @@
 
 let testEvent ={
     "start": { 
-        "dateTime": "9:00AM",  
+        "dateTime": "2019-03-27T00:36:45.919Z",  
         "timeZone": "Pacific Standard Time" 
     },  
       "end": { 
-        "dateTime": "2:00PM",  
+        "dateTime": "2019-03-27T00:37:45.919Z",  
         "timeZone": "Pacific Standard Time" 
         },
     
@@ -34,8 +34,9 @@ let testEvent ={
 
 function makeFrame(event){
     let container = $("<div>", {class: 'container-fluid', style: "margin-top:15px"})
+    let startime = parseDatetime(event.start.dateTime)
     let card= $("<div>", {class: 'card'})
-    card.append(`<div class="card-header">${event.start.dateTime} with ${event.attendees[0].emailAddress.name} from 
+    card.append(`<div class="card-header">${startime}: ${event.attendees[0].emailAddress.name} from 
     ${testEvent.company}</div>`)
     container.append(card)
     return container
@@ -43,3 +44,17 @@ function makeFrame(event){
 
 $('document').ready($('body').append(makeFrame(testEvent)))
 $('document').ready($('body').append(makeFrame(testEvent)))
+
+
+//parse datetime objects
+function parseDatetime(string){
+  let time = new Date(string);
+  let m = "AM";
+  let hr = time.getHours();
+  if (hr>12){
+    m = 'PM';
+    hr = hr-12;
+  }
+  return `${hr}:${time.getMinutes()} ${m}`
+
+}

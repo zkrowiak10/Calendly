@@ -4,55 +4,64 @@ var redirectUri = chrome.identity.getRedirectURL("outlook");
 var appId = 'd25c3df7-f3bc-48f3-ba05-b395304067e7';
 var scopes = 'openid Calendars.Read';
 var calendar_url = 'https://graph.microsoft.com/v1.0/me/calendarview?'
+var tokenObj = window.localStorage.getItem('tokenObj');
+   
+if (tokenObj){
+  console.log("the token object is undefined, login required",tokenObj)
+  tokenObj={}
+  //loadingView()
+}
+else{
+  window.localStorage.getItem('tokenObj')
+  console.log('logged in',tokenObj)
+  $('#logout').show();
+  $('#login').hide();
+  //loadingView();
+}
 
-var appId = "d25c3df7-f3bc-48f3-ba05-b395304067e7";
-var tokenObj = new Object();
 
-$('document').ready(()=>{
-  chrome.storage.sync.get('tokenObj', function(data){
-    
-    if (typeof data['tokenObj'] == 'undefined'){
-      console.log("the token object is undefined, login required",data['tokenObj'])
-      loadingView()
-      return}
-    else{
-      console.log('logged in',data)
-      tokenObj=data.tokenObj;
-      $('#logout').show();
-      $('#login').hide();
-      loadingView();
-    }
-  })
-})
 
-date(1)
+
 function syncAccount(){
     console.log('beginning')
-    loadingView();
-    chrome.storage.sync.get('tokenObj',function(data){
-        if (typeof data[tokenObj] == 'undefined'){            
-            let requestURL = {'url': buildAuthUrl(), 'interactive':true}
-            chrome.identity.launchWebAuthFlow(requestURL,function(response){
-                handleTokenResponse(response);
-                chrome.storage.sync.set({'tokenObj':tokenObj})
-                chrome.storage.sync.set({loggedIn:true})
-                console.log('stored')
-                $('#login').hide();
-                $('#logout').show();
-                loadingView();
-            })
-        }
-        else{
-            console.log('already logged in')
-            $('#return').text('already in')
+    //loadingView();
+    if (!window.localStorage.getItem('tokenObj')) {            
+        let requestURL = {'url': buildAuthUrl(), 'interactive':true}
+        chrome.identity.launchWebAuthFlow(requestURL,function(response){
+            handleTokenResponse(response);
+            window.localStorage.setItem('tokenObj', tokenObj)
+            chrome.storage.sync.set({loggedIn:true})
+            console.log('stored')
             $('#login').hide();
             $('#logout').show();
-            console.log(data)
-            tokenObj=data.tokenObj
-            console.log(JSON.toString(tokenObj))
-            loadingView();
-        }
-    })
+            //loadingView();
+        })
+    }
+    else{
+        console.log('already logged in')
+        $('#return').text('already in')
+        $('#login').hide();
+        $('#logout').show();
+        console.log(JSON.toString(tokenObj))
+       // loadingView();
+    }
+}
+
+// Helper method to validate token and refresh
+// if needed
+function getAccessToken(callback) {
+  var now = new Date().getTime();
+  var isExpired = now > parseInt(tokenObj.tokenExpires);
+  // Do we have a token already?
+  if (tokenObj.accessToken && !isExpired) {
+    // Just return what we have
+    if (callback) {
+      callback(sessionStorage.accessToken);
+    }
+  } else {
+    // Attempt to do a hidden iframe request
+    makeSilentTokenRequest(callback);
+  }
 }
 
 function makeSilentTokenRequest(callback) {
@@ -63,7 +72,7 @@ function makeSilentTokenRequest(callback) {
   iframe.appendTo('body');
   iframe.hide();
 
-  iframe.load(function() {
+  iframe.on('load',function() {
     callback(tokenObj.accessToken);
   });
 
@@ -73,10 +82,10 @@ function makeSilentTokenRequest(callback) {
 }
 
 function logout(){
-    chrome.storage.sync.clear(function(){
-      $('#login').show();
-      $('#logout').hide();
-    })
+  window.localStorage.removeItem('tokenObj')
+  console.log(tokenObj)
+  $('#login').show();
+  $('#logout').hide();
 }
 
 
@@ -187,6 +196,7 @@ function validateIdToken(callback) {
   // Parse the token parts
   var header = KJUR.jws.JWS.readSafeJSONString(b64utoutf8(tokenParts[0]));
   var payload = KJUR.jws.JWS.readSafeJSONString(b64utoutf8(tokenParts[1]));
+  console.log(payload)
 
   // Check the nonce
   if (payload.nonce != sessionStorage.authNonce) {
@@ -218,7 +228,8 @@ function validateIdToken(callback) {
 
   // Now that we've passed our checks, save the bits of data
   // we need from the token.
-
+  console.log('payload',payload)
+  console.log('preferred username', payload.preferred_username)
   sessionStorage.userDisplayName = payload.name;
   sessionStorage.userSigninName = payload.preferred_username;
   tokenObj.userDisplayName = payload.name;
@@ -249,35 +260,27 @@ function getAccessToken(callback) {
   }
 }
 
-function calendars(){
-  let header = {
+function calendars(date){
+  today = date.toISOString();
+  let day = date.getDate()
+  console.log(day)
+  date.setDate(day+1)
+  tomorrow = date.toISOString();
+  getAccessToken(
 
-  }
-  $.ajax({
-    type: 'GET',
-    url: calendar_url + "startdatetime=2019-03-25T01:00:00&enddatetime=2019-03-26T01:00:00&$top=10",
-    headers: {
-        "Authorization": "Bearer " + tokenObj.accessToken
-    }
-}).done(function(data){
-  console.log("the results of calendar query are:",data)
-})}
-
-function date(dayRange){
-  let date = new Date();
-  let today = {year: date.getFullYear().toString(),
-    month: date.getMonth().toString(),
-    day: date.getDay().toString(),
-    time: "T00:00:00"
-  }
-  todayString = [today.year,today.month,today.day,today.time].join('-')
- console.log(todayString)
-  
-  let tomorrow = date.getFullYear() + date.getMonth() + date.getDay() + "T00:00:00";
-  console.log(todayString)
-
+    $.ajax({
+      type: 'GET',
+      url: calendar_url + `startdatetime=${today}&enddatetime=${tomorrow}&$top=10`,
+      headers: {
+          "Authorization": "Bearer " + tokenObj.accessToken
+          }
+    }).done(function(data){
+      console.log("the results of calendar query are:",data)
+      window.localStorage.setItem('todayCalendar',data)
+      })
+  )
 }
 
-//parse datetime objects
 
+  
 
