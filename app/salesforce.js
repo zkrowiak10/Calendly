@@ -1,5 +1,4 @@
 
-<<<<<<< HEAD
 
 
 
@@ -7,7 +6,7 @@
 
 //searchSF('tod@modernostrategies.com	')
 
-function searchSF(email){
+async function searchSF(email){
     let base = 'https://wordstream.my.salesforce.com/search/SearchResults?searchType=2&str=';
     let SFDC = "https://wordstream.my.salesforce.com/"
     let target = encodeURI(base+email);
@@ -16,7 +15,7 @@ function searchSF(email){
         console.log('contact data already exists')
         return
     }
-
+    let promise = new Promise ((resolve,reject) =>{
     fetch(target, {credentials: "include", mode: 'cors'}).then(function(response) {
         console.log("Response:");
         console.log(response)
@@ -68,8 +67,12 @@ function searchSF(email){
             
             console.log(sfData.profiles);
             console.log(sfData);
-            window.localStorage.setItem(email,sfData);        })
+            window.localStorage.setItem(email,JSON.stringify(sfData));
+            resolve()        })
     })
+    })
+    let result = await promise;
+    return result;
 }
         
 
@@ -91,5 +94,3 @@ function searchSF(email){
             
         
     })*/
-=======
->>>>>>> e9bec23261330b50211fff2d2339c40648b0bd97

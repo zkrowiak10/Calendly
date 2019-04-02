@@ -36,14 +36,21 @@ function makeFrame(event){
     let container = $("<div>", {class: 'container-fluid', style: "margin-top:15px"})
     let startime = parseDatetime(event.start.dateTime)
     let card= $("<div>", {class: 'card'})
-    card.append(`<div class="card-header">${startime}: ${event.attendees[0].emailAddress.name} from 
-    ${testEvent.company}</div>`)
+    card.append(`<div class="card-header">${startime}: ${event.attendees[0].emailAddress.name}`)
+    let cardInfo =$('<div>', {class:"card"})
+    if (!event.profiles){
+      cardInfo.text('Not Synced to Salesforce')
+    }
+    else {
+      cardInfo.text(JSON.stringify(event.profiles))
+    }
+    card.append(cardInfo)
     container.append(card)
     return container
 }
 
 $('document').ready($('body').append(makeFrame(testEvent)))
-$('document').ready($('body').append(makeFrame(testEvent)))
+//$('document').ready($('body').append(makeFrame(testEvent)))
 
 
 //parse datetime objects
@@ -55,6 +62,7 @@ function parseDatetime(string){
     m = 'PM';
     hr = hr-12;
   }
-  return `${hr}:${time.getMinutes()} ${m}`
+  if (hr==12){m='PM'}
+  return `${hr}:${(time.getUTCMinutes()<10? '0':'')+time.getUTCMinutes()} ${m}`
 
 }

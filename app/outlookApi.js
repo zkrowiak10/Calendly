@@ -4,23 +4,22 @@ var redirectUri = chrome.identity.getRedirectURL("outlook");
 var appId = 'd25c3df7-f3bc-48f3-ba05-b395304067e7';
 var scopes = 'openid Calendars.Read';
 var calendar_url = 'https://graph.microsoft.com/v1.0/me/calendarview?'
-var tokenObj = window.localStorage.getItem('tokenObj');
-   
-if (tokenObj){
-  console.log("the token object is undefined, login required",tokenObj)
-  tokenObj={}
-  //loadingView()
+var tokenObj = JSON.parse(window.localStorage.getItem('tokenObj'));
+
+function checkIn(){
+  if (!tokenObj){
+    console.log("the token object is undefined, login required",tokenObj)
+    tokenObj={}
+    loadingView()
+  }
+  else{
+    window.localStorage.getItem('tokenObj')
+    console.log('logged in',tokenObj)
+    $('#logout').show();
+    $('#login').hide();
+    loadingView();
+  }
 }
-else{
-  window.localStorage.getItem('tokenObj')
-  console.log('logged in',tokenObj)
-  $('#logout').show();
-  $('#login').hide();
-  //loadingView();
-}
-
-
-
 
 function syncAccount(){
     console.log('beginning')
@@ -29,7 +28,8 @@ function syncAccount(){
         let requestURL = {'url': buildAuthUrl(), 'interactive':true}
         chrome.identity.launchWebAuthFlow(requestURL,function(response){
             handleTokenResponse(response);
-            window.localStorage.setItem('tokenObj', tokenObj)
+            console.log('tokenObj after handleToken',tokenObj)
+            window.localStorage.setItem('tokenObj', JSON.stringify(tokenObj))
             chrome.storage.sync.set({loggedIn:true})
             console.log('stored')
             $('#login').hide();
@@ -55,31 +55,56 @@ function getAccessToken(callback) {
   // Do we have a token already?
   if (tokenObj.accessToken && !isExpired) {
     // Just return what we have
+    console.log('access token exists and isnt expired')
     if (callback) {
-      callback(sessionStorage.accessToken);
+      callback();
     }
   } else {
     // Attempt to do a hidden iframe request
+    console.log('silent request needed')
     makeSilentTokenRequest(callback);
   }
 }
 
 function makeSilentTokenRequest(callback) {
-  // Build up a hidden iframe
-  var iframe = $('<iframe/>');
-  iframe.attr('id', 'auth-iframe');
-  iframe.attr('name', 'auth-iframe');
-  iframe.appendTo('body');
-  iframe.hide();
+ /* // Build up a hidden iframe
+    let requestURL = buildSilentAuthUrl();
+    sessionStorage.idToken = tokenObj.id_token;
+    fetch(requestURL, {credentials: "include", mode: 'cors'}).then(function(response){
+      console.log('tknReq', response)
+      handleTokenResponse(response);
+      window.localStorage.setItem('tokenObj', JSON.stringify(tokenObj))
+      console.log('stored')
+      $('#login').hide();
+      $('#logout').show();
+      //loadingView();
+    })*/
 
-  iframe.on('load',function() {
-    callback(tokenObj.accessToken);
-  });
+  /*$.ajax({
+    type: 'GET',
+    url: buildSilentAuthUrl(),
+    headers: {
+        "Authorization": "Bearer " + tokenObj.accessToken
+        }
+  }).done(function(data){
+    console.log("the results of calendar query are:",data)
+    window.localStorage.setItem('todayCalendar',JSON.stringify(data))
+    resolve(data)
+    })
+}*/
+    var iframe = $('<iframe/>');
+    iframe.attr('id', 'auth-iframe');
+    iframe.attr('name', 'auth-iframe');
+    iframe.appendTo('body');
+    iframe.hide();
 
-  iframe.attr('src', buildAuthUrl() + '&prompt=none&domain_hint=' +
-    tokenObj.userDomainType + '&login_hint=' +
-    tokenObj.userSigninName);
+    iframe.on('load',function() {
+      callback();
+    });
+
+    iframe.attr('src', buildSilentAuthUrl());
 }
+  
 
 function logout(){
   window.localStorage.removeItem('tokenObj')
@@ -121,7 +146,25 @@ function buildAuthUrl() {
   
     return authEndpoint + $.param(authParams);
   }
+  function buildSilentAuthUrl() {
+    // Generate random values for state and nonce
+    sessionStorage.authState = guid();
+    sessionStorage.authNonce = guid();
+  
+    var authParams = {
+      response_type: 'id_token',
+      client_id: appId,
+      redirect_uri: redirectUri,
+      scope: 'openid',
+      state: sessionStorage.authState,
+      nonce: sessionStorage.authNonce,
+      response_mode: 'fragment',
+      prompt: 'none'
 
+    };
+    
+      return authEndpoint + $.param(authParams);
+    }
 function parseHashParams(hash) {
   var params = hash.split('#')[1].split('&');
   
@@ -196,7 +239,7 @@ function validateIdToken(callback) {
   // Parse the token parts
   var header = KJUR.jws.JWS.readSafeJSONString(b64utoutf8(tokenParts[0]));
   var payload = KJUR.jws.JWS.readSafeJSONString(b64utoutf8(tokenParts[1]));
-  console.log(payload)
+  
 
   // Check the nonce
   if (payload.nonce != sessionStorage.authNonce) {
@@ -245,40 +288,31 @@ function validateIdToken(callback) {
   callback(true);
 }
 
-function getAccessToken(callback) {
-  var now = new Date().getTime();
-  var isExpired = now > parseInt(tokenObj.tokenExpires);
-  // Do we have a token already?
-  if (tokenObj.accessToken && !isExpired) {
-    // Just return what we have
-    if (callback) {
-      callback(tokenObj.accessToken);
-    }
-  } else {
-    // Attempt to do a hidden iframe request
-    makeSilentTokenRequest(callback);
-  }
-}
 
-function calendars(date){
+
+async function calendars(date){
   today = date.toISOString();
   let day = date.getDate()
   console.log(day)
   date.setDate(day+1)
   tomorrow = date.toISOString();
-  getAccessToken(
-
+  let response = new Promise((resolve,reject) => { getAccessToken(()=>{
     $.ajax({
       type: 'GET',
       url: calendar_url + `startdatetime=${today}&enddatetime=${tomorrow}&$top=10`,
       headers: {
-          "Authorization": "Bearer " + tokenObj.accessToken
+          "Authorization": "Bearer " + tokenObj.accessToken,
+          'Prefer': 'outlook.timezone="Eastern Standard Time"'
           }
     }).done(function(data){
       console.log("the results of calendar query are:",data)
-      window.localStorage.setItem('todayCalendar',data)
+      window.localStorage.setItem('todayCalendar',JSON.stringify(data))
+      resolve(data)
       })
-  )
+  })})
+  
+  let result = await response
+  return result
 }
 
 
