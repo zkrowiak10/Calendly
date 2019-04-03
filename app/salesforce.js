@@ -36,7 +36,7 @@ async function searchSF(email){
             }
             catch(err){
                 let message = err + '. email is:' + email;
-                alert(message)
+                console.log(message)
             }
             let sfid = hrf.split('?')[0];
             sfid = sfid.slice(1);
@@ -61,7 +61,10 @@ async function parseSFID(hrf,email) {
             let parser = new DOMParser();
             doc = parser.parseFromString(text, "text/html");
             let profiles =doc.getElementById(id).getElementsByClassName("list")[0].rows;
+            let company = doc.getElementById("acc2_ileinner").innerText.replace("[View Hierarchy]","").trim();
             let l = profiles.length -1;
+            console.log('in Salesforce.js, company:', company)
+            sfData.company = company;
             sfData.profiles =[];
             for (let i=1; i<l; i++) {
                 let obj = {}

@@ -1,7 +1,9 @@
+resetMode=true;
+
 $("#return").text('Jquery!')
 $('#logout').hide()
 $('#logout').click(logout)
-$('#login').click(syncAccount)
+$('#login').click(syncAccount)  
 $('#getStuff').click(calendars)
 $('#loading').show()
 $('#buttons').hide()
@@ -19,38 +21,55 @@ function makeToday(){
     let today = new Date();
     if (window.localStorage.getItem('today')!= today.toDateString()) {
         console.log('Just logged in, or new day');
-        calendars(today).then(()=>{
-            let appointments = JSON.parse(window.localStorage.getItem('todayCalendar'))
-            
-            let l = appointments.value.length;
-            
-            for (let i=0; i<l; i++){
-                let calendly = /calendly.com/i;
-                let appointment = appointments.value[i];
-                
-                let content = appointment.body.content;
-                let search = content.search(calendly)
-                if ( search > -1) {
-                    let email = appointment.attendees[0].emailAddress.address;
-                    if (!window.localStorage.getItem(email)){
-                        searchSF(email).then(function() {
-                        let profiles=JSON.parse(window.localStorage.getItem(email))
-                        appointment.profiles = profiles
-                        $('body').append(makeFrame(appointment))
-                        })
-                    }
-                    else {
-                        let profiles=JSON.parse(window.localStorage.getItem(email))
-                        appointment.profiles = profiles
-                        
-                        $('body').append(makeFrame(appointment))
-                    }
-                };
-            }
-                
-        })
+        calendars(today)
+        .then(makeCards())
+    }
+    else {
+        makeCards();
     }
 }
 
 
 
+function makeCards() {
+    let appointments = JSON.parse(window.localStorage.getItem('todayCalendar'))
+    
+    let l = appointments.value.length;
+    
+    for (let i=0; i<l; i++){
+        let calendly = /calendly.com/i;
+        let appointment = appointments.value[i];
+        
+        let content = appointment.body.content;
+        let search = content.search(calendly)
+        if ( search > -1) {
+           
+            let email = appointment.attendees[0].emailAddress.address;
+            
+            if (resetMode){window.localStorage.removeItem(email)} //to reset local storage while developing
+            if (!window.localStorage.getItem(email)){
+                searchSF(email).then(function() {
+                let client =JSON.parse(window.localStorage.getItem(email))
+                appointment.profiles = client.profiles;
+                appointment.company = client.company;
+                $('body').append(makeFrame(appointment))
+                })
+            }
+            else {
+                //until client objects are consistent
+                searchSF(email).then(function() {
+                    let client =JSON.parse(window.localStorage.getItem(email))
+                    appointment.profiles = client.profiles;
+                    appointment.company = client.company;
+                    $('body').append(makeFrame(appointment))
+                    })
+                
+                /*let client=JSON.parse(window.localStorage.getItem(email))
+                appointment.profiles = client.profiles
+                appointment.company = client.company;
+                $('body').append(makeFrame(appointment))*/
+            }
+        };
+    }
+        
+}

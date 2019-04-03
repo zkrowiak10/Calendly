@@ -44,7 +44,7 @@ function makeFrame(event){
     else {
       //cardInfo.text(JSON.stringify(event.profiles))
     }
-    cardInfo.append(`<h5 class="card-title">Company Name</h5>
+    cardInfo.append(`<h5 class="card-title">${event.company}</h5>
               <a href="${SFDC + event.profiles.sfid}" style=
               "text-align:left" target="_blank" class="btn-sm btn-primary">Go To Salesforce</a>
               <a href="${gainsight + event.profiles.sfid}" style=

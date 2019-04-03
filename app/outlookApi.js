@@ -14,10 +14,12 @@ function checkIn(){
   }
   else{
     window.localStorage.getItem('tokenObj')
+    window.localStorage.setItem('loggedIn',true)
     console.log('logged in',tokenObj)
     $('#logout').show();
     $('#login').hide();
     loadingView();
+    makeToday()
   }
 }
 
@@ -108,6 +110,7 @@ function makeSilentTokenRequest(callback) {
 
 function logout(){
   window.localStorage.removeItem('tokenObj')
+  window.localStorage.setItem('loggedIn',false)
   console.log(tokenObj)
   $('#login').show();
   $('#logout').hide();
