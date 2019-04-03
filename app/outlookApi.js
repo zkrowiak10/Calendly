@@ -305,7 +305,7 @@ async function calendars(date){
           'Prefer': 'outlook.timezone="Eastern Standard Time"'
           }
     }).done(function(data){
-      console.log("the results of calendar query are:",data)
+      
       window.localStorage.setItem('todayCalendar',JSON.stringify(data))
       resolve(data)
       })

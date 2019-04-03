@@ -4,48 +4,59 @@
 
 
 
-//searchSF('tod@modernostrategies.com	')
-
+searchSF('tod@modernostrategies.com	')
+let SFDC = "https://wordstream.my.salesforce.com/"
+let gainsight ="https://wordstream--jbcxm.na66.visual.force.com/apex/JBCXM__customersuccess360?cid="
 async function searchSF(email){
     let base = 'https://wordstream.my.salesforce.com/search/SearchResults?searchType=2&str=';
-    let SFDC = "https://wordstream.my.salesforce.com/"
     let target = encodeURI(base+email);
     let sfData = {};
+    
+    //check that contact data is not in existence
     if (window.localStorage.getItem(email)){
         console.log('contact data already exists')
         return
     }
-    let promise = new Promise ((resolve,reject) =>{
-    fetch(target, {credentials: "include", mode: 'cors'}).then(function(response) {
-        console.log("Response:");
-        console.log(response)
-        return response.text()})
-    .then(function(text){
-        //console.log(text)
-        let error = 'redirectOnLoad()';
-        let checker = text.search(error);
-        let parser = new DOMParser();
-        doc = parser.parseFromString(text, "text/html");
-        if (checker!=-1){
-            alert('You are not logged in. Please go to salesforce.com and log in')
-            return
-        }
-        try {
-           var hrf = doc.getElementById('Account_body').getElementsByTagName('table')[0].rows[1].cells[1].getElementsByTagName('a')[0].getAttribute('href');
-        }
-        catch(err){
-            alert(err)
 
-        }
-        let sfid = hrf.split('?')[0];
-        sfid = sfid.slice(1);
-        console.log('sfid:', sfid);
-        sfData.sfid = sfid;
-        return hrf
-    }).then((hrf)=>{
+    let promise = new Promise ((resolve,reject) =>{
+        fetch(target, {credentials: "include", mode: 'cors'}).then(function(response) {
+            return response.text()})
+        .then(function(text){
+            //console.log(text)
+            let error = 'redirectOnLoad()';
+            let checker = text.search(error);
+            let parser = new DOMParser();
+            doc = parser.parseFromString(text, "text/html");
+            if (checker!=-1){
+                alert('You are not logged in. Please go to salesforce.com and log in')
+                return
+            }
+            try {
+                var hrf = doc.getElementById('Account_body').getElementsByTagName('table')[0].rows[1].cells[1].getElementsByTagName('a')[0].getAttribute('href');
+            }
+            catch(err){
+                let message = err + '. email is:' + email;
+                alert(message)
+            }
+            let sfid = hrf.split('?')[0];
+            sfid = sfid.slice(1);
+            sfData.sfid = sfid;
+            window.localStorage.setItem(email,JSON.stringify(sfData));
+            parseSFID(hrf,email)
+            .then(()=>{resolve()});
+        })
+        
+    })
+    let result = await promise
+    return result;
+}
+
+async function parseSFID(hrf,email) {
+    let sfData = JSON.parse(window.localStorage.getItem(email))
+    let promise = new Promise((resolve,reject)=> {
         fetch(SFDC+hrf,{credentials: "include", mode: 'cors'})
-        .then(response=>{return response.text()}
-        ).then(text=>{
+        .then(response=>{return response.text()})
+        .then(text=>{
             let id = sfData.sfid + '_00N80000004l7nV_body'
             let parser = new DOMParser();
             doc = parser.parseFromString(text, "text/html");
@@ -56,7 +67,7 @@ async function searchSF(email){
                 let obj = {}
                 let element= profiles[i];
                 if  (element.cells[10].innerHTML != '&nbsp;'){
-                    console.log( element.cells[10].innerHTML)
+                    
                     continue;
                 }
                 obj.ws= element.cells[1].innerText;
@@ -65,12 +76,12 @@ async function searchSF(email){
                 sfData.profiles.push(obj)
             };
             
-            console.log(sfData.profiles);
-            console.log(sfData);
+            
             window.localStorage.setItem(email,JSON.stringify(sfData));
-            resolve()        })
+            resolve()   
+        })
     })
-    })
+    
     let result = await promise;
     return result;
 }

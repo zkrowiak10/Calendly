@@ -37,19 +37,26 @@ function makeFrame(event){
     let startime = parseDatetime(event.start.dateTime)
     let card= $("<div>", {class: 'card'})
     card.append(`<div class="card-header">${startime}: ${event.attendees[0].emailAddress.name}`)
-    let cardInfo =$('<div>', {class:"card"})
+    let cardInfo =$('<div>', {class:"card-body"})
     if (!event.profiles){
       cardInfo.text('Not Synced to Salesforce')
     }
     else {
-      cardInfo.text(JSON.stringify(event.profiles))
+      //cardInfo.text(JSON.stringify(event.profiles))
     }
+    cardInfo.append(`<h5 class="card-title">Company Name</h5>
+              <a href="${SFDC + event.profiles.sfid}" style=
+              "text-align:left" target="_blank" class="btn-sm btn-primary">Go To Salesforce</a>
+              <a href="${gainsight + event.profiles.sfid}" style=
+              "text-align:left" target="_blank" class="btn-sm btn-primary">Go To Gainsight</a>
+    `)
+
     card.append(cardInfo)
     container.append(card)
     return container
 }
 
-$('document').ready($('body').append(makeFrame(testEvent)))
+//$('document').ready($('body').append(makeFrame(testEvent)))
 //$('document').ready($('body').append(makeFrame(testEvent)))
 
 

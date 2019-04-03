@@ -21,13 +21,13 @@ function makeToday(){
         console.log('Just logged in, or new day');
         calendars(today).then(()=>{
             let appointments = JSON.parse(window.localStorage.getItem('todayCalendar'))
-            console.log(appointments)
+            
             let l = appointments.value.length;
-            console.log('length', l)
+            
             for (let i=0; i<l; i++){
                 let calendly = /calendly.com/i;
                 let appointment = appointments.value[i];
-                console.log('body',appointment.body.content)
+                
                 let content = appointment.body.content;
                 let search = content.search(calendly)
                 if ( search > -1) {
@@ -36,14 +36,14 @@ function makeToday(){
                         searchSF(email).then(function() {
                         let profiles=JSON.parse(window.localStorage.getItem(email))
                         appointment.profiles = profiles
-                        console.log('framemaker', appointment);
                         $('body').append(makeFrame(appointment))
                         })
                     }
                     else {
-
-                        console.log('framemaker', appointments.value[i])
-                        $('body').append(makeFrame(appointments.value[i]))
+                        let profiles=JSON.parse(window.localStorage.getItem(email))
+                        appointment.profiles = profiles
+                        
+                        $('body').append(makeFrame(appointment))
                     }
                 };
             }
