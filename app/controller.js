@@ -1,5 +1,5 @@
 resetMode=true;
-
+const wordstreamLoginURI ='https://ppc.wordstream.com/admin/product_login/'
 $("#return").text('Jquery!')
 $('#logout').hide()
 $('#logout').click(logout)

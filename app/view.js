@@ -34,17 +34,21 @@ let testEvent ={
 
 function makeFrame(event){
     let container = $("<div>", {class: 'container-fluid', style: "margin-top:15px"})
-    let startime = parseDatetime(event.start.dateTime)
+    let startTime = parseDatetime(event.start.dateTime)
     let card= $("<div>", {class: 'card'})
-    card.append(`<div class="card-header">${startime}: ${event.attendees[0].emailAddress.name}`)
-    
+    container.attr("data-email",event.attendees[0].emailAddress.address)
+    container.attr("data-startTime",startTime)
+    card.append(`<div class="card-header">${startTime}: ${event.attendees[0].emailAddress.name}`)
+    container.append(card)
     
     
       //cardInfo.text(JSON.stringify(event.profiles))
     
     let cardInfo = makeCardInfo(event.client)
-    card.append(cardInfo)
-    container.append(card)
+    container.append(cardInfo)
+      
+    
+    
     return container
 }
 
@@ -52,23 +56,25 @@ function makeFrame(event){
 //$('document').ready($('body').append(makeFrame(testEvent)))
 
 function makeCardInfo(client) {
-  let cardInfo =$('<div>', {class:"card-body"})
+  let cardInfo =$('<div>', {class:"card-body", syle:"display:inline"})
   if (!client.profiles){
     cardInfo.text('Not Synced to Salesforce')
   }
   else {
-    cardInfo.append(`<h5 class="card-title">${client.company}</h5>
-                <a href="${SFDC + client.sfid}" style=
+    cardInfo.append(`<h6 syle="display:inline" class="card-title">${client.company}</h6>
+                <a syle="display:inline" href="${SFDC + client.sfid}" style=
                 "text-align:left" target="_blank" class="btn-sm btn-primary">Go To Salesforce</a>
-                <a href="${gainsight + client.sfid}" style=
+                <a syle="display:inline" href="${gainsight + client.sfid}" style=
                 "text-align:left" target="_blank" class="btn-sm btn-primary">Go To Gainsight</a>
       `)
     let table = $("<table>", {class : "table"})  
     for (profile of client.profiles){
         let row = $("<tr>", {scope:"row"})
         row.append(`<td>${profile.friendlyName}`)
-        row.append(`<td>${profile.ws}`)
-        row.append(`<td>${profile.google}`)
+        let wsPath = wordstreamLoginURI + profile.ws;
+        let button = $(`<a target="_blank" href=${wsPath}><img class="png" src="wordStream.png"></a>` )
+        row.append(button)
+        //row.append(`<td>${profile.google}`)
         table.append(row)
     }
     cardInfo.append(table)
