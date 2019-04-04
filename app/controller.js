@@ -45,13 +45,14 @@ function makeCards() {
         if ( search > -1) {
            
             let email = appointment.attendees[0].emailAddress.address;
-            
+            if (email == "zkrowiak@wordstream.com") { //must be revised later to reflect current user!!
+                email =appointment.attendees[1].emailAddress.address
+            }
             if (resetMode){window.localStorage.removeItem(email)} //to reset local storage while developing
             if (!window.localStorage.getItem(email)){
                 searchSF(email).then(function() {
                 let client =JSON.parse(window.localStorage.getItem(email))
-                appointment.profiles = client.profiles;
-                appointment.company = client.company;
+                appointment.client = client;
                 $('body').append(makeFrame(appointment))
                 })
             }
@@ -59,8 +60,7 @@ function makeCards() {
                 //until client objects are consistent
                 searchSF(email).then(function() {
                     let client =JSON.parse(window.localStorage.getItem(email))
-                    appointment.profiles = client.profiles;
-                    appointment.company = client.company;
+                    appointment.client = client;
                     $('body').append(makeFrame(appointment))
                     })
                 
@@ -73,3 +73,4 @@ function makeCards() {
     }
         
 }
+

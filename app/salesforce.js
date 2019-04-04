@@ -61,16 +61,17 @@ async function parseSFID(hrf,email) {
             let parser = new DOMParser();
             doc = parser.parseFromString(text, "text/html");
             let profiles =doc.getElementById(id).getElementsByClassName("list")[0].rows;
+            
             let company = doc.getElementById("acc2_ileinner").innerText.replace("[View Hierarchy]","").trim();
-            let l = profiles.length -1;
-            console.log('in Salesforce.js, company:', company)
+            let l = profiles.length;
+            //console.log('in Salesforce.js, company:', company)
             sfData.company = company;
             sfData.profiles =[];
             for (let i=1; i<l; i++) {
                 let obj = {}
                 let element= profiles[i];
                 if  (element.cells[10].innerHTML != '&nbsp;'){
-                    
+                    console.log(`Email = ${email}; this text should be a date`,element.cells[10].innerHTML)
                     continue;
                 }
                 obj.ws= element.cells[1].innerText;
@@ -78,6 +79,8 @@ async function parseSFID(hrf,email) {
                 obj.friendlyName=  element.cells[5].innerText;
                 sfData.profiles.push(obj)
             };
+            let message = `email: "${email}";`
+            //console.log(message,sfData)
             
             
             window.localStorage.setItem(email,JSON.stringify(sfData));

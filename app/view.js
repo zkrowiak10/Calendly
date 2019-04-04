@@ -37,20 +37,12 @@ function makeFrame(event){
     let startime = parseDatetime(event.start.dateTime)
     let card= $("<div>", {class: 'card'})
     card.append(`<div class="card-header">${startime}: ${event.attendees[0].emailAddress.name}`)
-    let cardInfo =$('<div>', {class:"card-body"})
-    if (!event.profiles){
-      cardInfo.text('Not Synced to Salesforce')
-    }
-    else {
+    
+    
+    
       //cardInfo.text(JSON.stringify(event.profiles))
-    }
-    cardInfo.append(`<h5 class="card-title">${event.company}</h5>
-              <a href="${SFDC + event.profiles.sfid}" style=
-              "text-align:left" target="_blank" class="btn-sm btn-primary">Go To Salesforce</a>
-              <a href="${gainsight + event.profiles.sfid}" style=
-              "text-align:left" target="_blank" class="btn-sm btn-primary">Go To Gainsight</a>
-    `)
-
+    
+    let cardInfo = makeCardInfo(event.client)
     card.append(cardInfo)
     container.append(card)
     return container
@@ -59,7 +51,32 @@ function makeFrame(event){
 //$('document').ready($('body').append(makeFrame(testEvent)))
 //$('document').ready($('body').append(makeFrame(testEvent)))
 
+function makeCardInfo(client) {
+  let cardInfo =$('<div>', {class:"card-body"})
+  if (!client.profiles){
+    cardInfo.text('Not Synced to Salesforce')
+  }
+  else {
+    cardInfo.append(`<h5 class="card-title">${client.company}</h5>
+                <a href="${SFDC + client.sfid}" style=
+                "text-align:left" target="_blank" class="btn-sm btn-primary">Go To Salesforce</a>
+                <a href="${gainsight + client.sfid}" style=
+                "text-align:left" target="_blank" class="btn-sm btn-primary">Go To Gainsight</a>
+      `)
+    let table = $("<table>", {class : "table"})  
+    for (profile of client.profiles){
+        let row = $("<tr>", {scope:"row"})
+        row.append(`<td>${profile.friendlyName}`)
+        row.append(`<td>${profile.ws}`)
+        row.append(`<td>${profile.google}`)
+        table.append(row)
+    }
+    cardInfo.append(table)
+    return cardInfo
+  }
 
+
+}
 //parse datetime objects
 function parseDatetime(string){
   let time = new Date(string);
