@@ -1,5 +1,8 @@
-resetMode=true;
+resetMode=false;
 const wordstreamLoginURI ='https://ppc.wordstream.com/admin/product_login/'
+const googleURI = 'https://ads.google.com/aw/overview?__e='
+
+
 $("#return").text('Jquery!')
 $('#logout').hide()
 $('#logout').click(logout)
@@ -45,13 +48,17 @@ function makeCards() {
         if ( search > -1) {
            
             let email = appointment.attendees[0].emailAddress.address;
+            let name= appointment.attendees[0].emailAddress.name
             if (email == "zkrowiak@wordstream.com") { //must be revised later to reflect current user!!
                 email =appointment.attendees[1].emailAddress.address
+                 name = appointment.attendees[1].emailAddress.name
             }
             if (resetMode){window.localStorage.removeItem(email)} //to reset local storage while developing
             if (!window.localStorage.getItem(email)){
                 searchSF(email).then(function() {
                 let client =JSON.parse(window.localStorage.getItem(email))
+                client.email = email;
+                client.name = name;
                 appointment.client = client;
                 $('body').append(makeFrame(appointment))
                 })
@@ -61,6 +68,8 @@ function makeCards() {
                 searchSF(email).then(function() {
                     let client =JSON.parse(window.localStorage.getItem(email))
                     appointment.client = client;
+                    client.name = name;
+                    client.email = email;
                     $('body').append(makeFrame(appointment))
                     })
                 

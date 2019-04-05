@@ -38,7 +38,7 @@ function makeFrame(event){
     let card= $("<div>", {class: 'card'})
     container.attr("data-email",event.attendees[0].emailAddress.address)
     container.attr("data-startTime",startTime)
-    card.append(`<div class="card-header">${startTime}: ${event.attendees[0].emailAddress.name}`)
+    card.append(`<div class="card-header">${startTime}: ${event.client.name}`)
     container.append(card)
     
     
@@ -66,14 +66,21 @@ function makeCardInfo(client) {
                 "text-align:left" target="_blank" class="btn-sm btn-primary">Go To Salesforce</a>
                 <a syle="display:inline" href="${gainsight + client.sfid}" style=
                 "text-align:left" target="_blank" class="btn-sm btn-primary">Go To Gainsight</a>
+                <a syle="display:inline" href="mailto: ${client.email}" style=
+                "text-align:left" target="_blank" class="btn-sm btn-primary">Email Client</a>
       `)
     let table = $("<table>", {class : "table"})  
     for (profile of client.profiles){
         let row = $("<tr>", {scope:"row"})
         row.append(`<td>${profile.friendlyName}`)
         let wsPath = wordstreamLoginURI + profile.ws;
-        let button = $(`<a target="_blank" href=${wsPath}><img class="png" src="wordStream.png"></a>` )
+        let googlePath = googleURI+ profile.google
+        let button = $(`<button class="png-button" style='float:right; margin-right:5px' target="_blank" style="margin-right:5px"><img class="png" src="wordStream.png"></>` )
+        button.click(function() {createTab(wsPath)})
         row.append(button)
+        let google = $(`<button class="png-button" style='float:right; margin-right:5px' target="_blank" style="margin-right:5px"><img class="png" src="google-icon32.png"></>` )
+        google.click(function() {createTab(googlePath)})
+        row.append(google)
         //row.append(`<td>${profile.google}`)
         table.append(row)
     }
@@ -95,4 +102,8 @@ function parseDatetime(string){
   if (hr==12){m='PM'}
   return `${hr}:${(time.getUTCMinutes()<10? '0':'')+time.getUTCMinutes()} ${m}`
 
+}
+
+function createTab(url){
+    chrome.tabs.create({"url": url, 'active': false})
 }

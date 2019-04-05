@@ -6,6 +6,7 @@
     padding: 0;
     background:none;
     outline: none;
+    float: right;
 
 }
 .png-button:active{
