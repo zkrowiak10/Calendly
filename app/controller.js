@@ -25,7 +25,10 @@ function makeToday(){
     if (window.localStorage.getItem('today')!= today.toDateString()) {
         console.log('Just logged in, or new day');
         calendars(today)
-        .then(makeCards())
+        .then(()=> {
+            makeCards()
+            window.localStorage.setItem('today',today)
+        })
     }
     else {
         makeCards();
@@ -34,17 +37,19 @@ function makeToday(){
 
 
 
-function makeCards() {
+async function makeCards() {
     let appointments = JSON.parse(window.localStorage.getItem('todayCalendar'))
     
     let l = appointments.value.length;
-    
+    let status = await checkSF();
     for (let i=0; i<l; i++){
         let calendly = /calendly.com/i;
         let appointment = appointments.value[i];
         
         let content = appointment.body.content;
-        let search = content.search(calendly)
+        let search = content.search(calendly) 
+        
+        
         if ( search > -1) {
            
             let email = appointment.attendees[0].emailAddress.address;
@@ -54,7 +59,8 @@ function makeCards() {
                  name = appointment.attendees[1].emailAddress.name
             }
             if (resetMode){window.localStorage.removeItem(email)} //to reset local storage while developing
-            if (!window.localStorage.getItem(email)){
+            if (!window.localStorage.getItem(email) && status){
+                
                 searchSF(email).then(function() {
                 let client =JSON.parse(window.localStorage.getItem(email))
                 client.email = email;
@@ -65,21 +71,27 @@ function makeCards() {
             }
             else {
                 //until client objects are consistent
-                searchSF(email).then(function() {
-                    let client =JSON.parse(window.localStorage.getItem(email))
-                    appointment.client = client;
-                    client.name = name;
-                    client.email = email;
-                    $('body').append(makeFrame(appointment))
-                    })
+                 
+                let client =JSON.parse(window.localStorage.getItem(email))
+                appointment.client = client;
+                client.name = name;
+                client.email = email;
+                $('body').append(makeFrame(appointment))
+            }
                 
                 /*let client=JSON.parse(window.localStorage.getItem(email))
                 appointment.profiles = client.profiles
                 appointment.company = client.company;
                 $('body').append(makeFrame(appointment))*/
-            }
+            
         };
     }
         
+}
+
+function loginSF(){
+    let confirm = confirm("You are not logged into salesforce. Go to Salesforce then come back to extension")
+    
+        if (confirm){chrome.tabs.create({url:"https://wordstream.my.salesforce.com/"})}
 }
 

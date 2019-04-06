@@ -33,7 +33,7 @@ let testEvent ={
 
 
 function makeFrame(event){
-    let container = $("<div>", {class: 'container-fluid', style: "margin-top:15px"})
+    let container = $("<div>", {class: 'card', style: "margin-top:15px"})
     let startTime = parseDatetime(event.start.dateTime)
     let card= $("<div>", {class: 'card'})
     container.attr("data-email",event.attendees[0].emailAddress.address)
@@ -56,22 +56,24 @@ function makeFrame(event){
 //$('document').ready($('body').append(makeFrame(testEvent)))
 
 function makeCardInfo(client) {
-  let cardInfo =$('<div>', {class:"card-body", syle:"display:inline"})
+  let cardInfo =$('<div>', {class:"card-body", syle:"display:inline; border-style:inset"})
   if (!client.profiles){
     cardInfo.text('Not Synced to Salesforce')
   }
   else {
-    cardInfo.append(`<h6 syle="display:inline" class="card-title">${client.company}</h6>
-                <a syle="display:inline" href="${SFDC + client.sfid}" style=
-                "text-align:left" target="_blank" class="btn-sm btn-primary">Go To Salesforce</a>
-                <a syle="display:inline" href="${gainsight + client.sfid}" style=
-                "text-align:left" target="_blank" class="btn-sm btn-primary">Go To Gainsight</a>
-                <a syle="display:inline" href="mailto: ${client.email}" style=
-                "text-align:left" target="_blank" class="btn-sm btn-primary">Email Client</a>
+    cardInfo.append(`
+    <ul>
+        <li>  <h6 style="display:inline" >${client.company}</h6>  </li>
+    
+        <li><a syle="display:inline" href="${SFDC + client.sfid}" target="_blank" class="btn-sm btn-primary">Go To Salesforce</a></li>
+        <li> <a syle="display:inline" href="${gainsight + client.sfid}" style=target="_blank" class="btn-sm btn-primary">Go To Gainsight</a></li>
+        <li><a syle="display:inline" href="mailto: ${client.email}" style= target="_blank" class="btn-sm btn-primary">Email Client</a></li>
+    </ul>
       `)
-    let table = $("<table>", {class : "table"})  
+    let table = $("<table>", {class : "table "})  
+    let tbody = $('<tbody>', {class: "table-striped"})
     for (profile of client.profiles){
-        let row = $("<tr>", {scope:"row"})
+        let row = $("<tr>", )
         row.append(`<td>${profile.friendlyName}`)
         let wsPath = wordstreamLoginURI + profile.ws;
         let googlePath = googleURI+ profile.google
@@ -82,8 +84,9 @@ function makeCardInfo(client) {
         google.click(function() {createTab(googlePath)})
         row.append(google)
         //row.append(`<td>${profile.google}`)
-        table.append(row)
+        tbody.append(row)
     }
+    table.append(tbody)
     cardInfo.append(table)
     return cardInfo
   }

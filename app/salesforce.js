@@ -92,7 +92,21 @@ async function parseSFID(hrf,email) {
     return result;
 }
         
-
+function checkSF(){
+    return new Promise((resolve,reject)=>{
+        fetch("https://wordstream.my.salesforce.com/", {credentials: "include", mode: 'cors'}).then(function(response) {
+            return response.text()})
+        .then(function(text){
+            //console.log(text)
+            let error = 'redirectOnLoad()';
+            let checker = text.search(error);
+            if (checker!=-1){
+                resolve(true)
+            }
+            resolve(false)
+        })
+    })
+}
     
 
         /*fetch(hrf.getAttribute('href'), {credentials: "include", mode: 'cors'})

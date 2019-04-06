@@ -12,9 +12,11 @@ function checkIn(){
     tokenObj={}
     loadingView()
   }
+  
   else{
-    window.localStorage.getItem('tokenObj')
+    
     window.localStorage.setItem('loggedIn',true)
+    getAccessToken();
     console.log('logged in',tokenObj)
     $('#logout').show();
     $('#login').hide();
@@ -64,7 +66,9 @@ function getAccessToken(callback) {
   } else {
     // Attempt to do a hidden iframe request
     console.log('silent request needed')
-    makeSilentTokenRequest(callback);
+    window.localStorage.removeItem('tokenObj')
+    //makeSilentTokenRequest(callback);
+    syncAccount()
   }
 }
 
