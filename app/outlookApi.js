@@ -294,6 +294,7 @@ function validateIdToken(callback) {
 
 
 async function calendars(date){
+  date.setHours(0,0,0,0)
   today = date.toISOString();
   let day = date.getDate()
   console.log(day)

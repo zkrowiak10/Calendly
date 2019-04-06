@@ -21,7 +21,7 @@ function loadingView(){
 
   //rewrite this as a function that calls calendars --> and calendars calls it back at the end.
 function makeToday(){
-    let today = new Date();
+    let today = new Date('2019-04-08T00:00:00');
     if (window.localStorage.getItem('today')!= today.toDateString()) {
         console.log('Just logged in, or new day');
         calendars(today)
@@ -60,18 +60,29 @@ function makeCards() {
                 client.email = email;
                 client.name = name;
                 appointment.client = client;
+                
                 $('body').append(makeFrame(appointment))
+                }).catch((err)=>{
+                    
+                    let client = {}
+                    client.email = email;
+                    client.name = name
+                    appointment.client = client;
+                    $('body').append(makeFrame(appointment))
+                    console.log(err)
                 })
             }
             else {
                 //until client objects are consistent
-                searchSF(email).then(function() {
+                
                     let client =JSON.parse(window.localStorage.getItem(email))
-                    appointment.client = client;
-                    client.name = name;
+                   
+                    
                     client.email = email;
+                    client.name = name
+                    appointment.client = client;
                     $('body').append(makeFrame(appointment))
-                    })
+            
                 
                 /*let client=JSON.parse(window.localStorage.getItem(email))
                 appointment.profiles = client.profiles

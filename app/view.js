@@ -38,14 +38,14 @@ function makeFrame(event){
     let card= $("<div>", {class: 'card'})
     container.attr("data-email",event.attendees[0].emailAddress.address)
     container.attr("data-startTime",startTime)
-    card.append(`<div class="card-header">${startTime}: ${event.client.name}`)
+    card.append(`<div class="card-header">${startTime}: ${event.client.name}</div>`)
     container.append(card)
     
     
       //cardInfo.text(JSON.stringify(event.profiles))
     
     let cardInfo = makeCardInfo(event.client)
-    container.append(cardInfo)
+    card.append(cardInfo)
       
     
     
@@ -69,19 +69,21 @@ function makeCardInfo(client) {
                 <a syle="display:inline" href="mailto: ${client.email}" style=
                 "text-align:left" target="_blank" class="btn-sm btn-primary">Email Client</a>
       `)
-    let table = $("<table>", {class : "table"})  
+    let table = $("<table>", {class : "table", style:"margin-top:20px; background: #F5F5F5; box-shadow: 1px 1px 3px grey; border-radius: 5px"})  
     for (profile of client.profiles){
-        let row = $("<tr>", {scope:"row"})
-        row.append(`<td>${profile.friendlyName}`)
+        let row = $("<tr>", {scope:"row",})
+        let td =$('<td>')
+        td.append(`${profile.friendlyName}`)
         let wsPath = wordstreamLoginURI + profile.ws;
         let googlePath = googleURI+ profile.google
         let button = $(`<button class="png-button" style='float:right; margin-right:5px' target="_blank" style="margin-right:5px"><img class="png" src="wordStream.png"></>` )
         button.click(function() {createTab(wsPath)})
-        row.append(button)
+        td.append(button)
         let google = $(`<button class="png-button" style='float:right; margin-right:5px' target="_blank" style="margin-right:5px"><img class="png" src="google-icon32.png"></>` )
         google.click(function() {createTab(googlePath)})
-        row.append(google)
+        td.append(google)
         //row.append(`<td>${profile.google}`)
+        row.append(td)
         table.append(row)
     }
     cardInfo.append(table)
