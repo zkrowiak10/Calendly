@@ -8,7 +8,7 @@ var tokenObj = JSON.parse(window.localStorage.getItem('tokenObj'));
 
 function checkIn(){
   if (!tokenObj){
-    console.log("the token object is undefined, login required",tokenObj)
+    //console.log("the token object is undefined, login required",tokenObj)
     tokenObj={}
     loadingView()
   }
@@ -16,8 +16,8 @@ function checkIn(){
   else{
     
     window.localStorage.setItem('loggedIn',true)
-    getAccessToken();
-    console.log('logged in',tokenObj)
+    
+    //console.log('logged in',tokenObj)
     $('#logout').show();
     $('#login').hide();
     loadingView();
@@ -25,28 +25,54 @@ function checkIn(){
   }
 }
 
+async function calendars(date){
+  
+  date.setHours(0,0,0,0)//set date to midnight
+  today = date.toISOString();//create datestring
+  let day = date.getDate()
+  date.setDate(day+1)//get tomorrow's date
+  tomorrow = date.toISOString();
+  let response = new Promise((resolve,reject) => { getAccessToken(()=>{
+    $.ajax({
+      type: 'GET',
+      url: calendar_url + `startdatetime=${today}&enddatetime=${tomorrow}&$top=10`,
+      headers: {
+          "Authorization": "Bearer " + tokenObj.accessToken,
+          'Prefer': 'outlook.timezone="Eastern Standard Time"' //undo hardcoding later
+          }
+    }).done(function(data){
+      
+      window.localStorage.setItem('todayCalendar',JSON.stringify(data))
+      resolve(data)
+      })
+  })})
+  
+  let result = await response
+  return result
+}
+
 function syncAccount(){
-    console.log('beginning')
+    //console.log('beginning')
     //loadingView();
     if (!window.localStorage.getItem('tokenObj')) {            
         let requestURL = {'url': buildAuthUrl(), 'interactive':true}
         chrome.identity.launchWebAuthFlow(requestURL,function(response){
             handleTokenResponse(response);
-            console.log('tokenObj after handleToken',tokenObj)
+            //console.log('tokenObj after handleToken',tokenObj)
             window.localStorage.setItem('tokenObj', JSON.stringify(tokenObj))
             chrome.storage.sync.set({loggedIn:true})
-            console.log('stored')
+            //console.log('stored')
             $('#login').hide();
             $('#logout').show();
             //loadingView();
         })
     }
     else{
-        console.log('already logged in')
+        //console.log('already logged in')
         $('#return').text('already in')
         $('#login').hide();
         $('#logout').show();
-        console.log(JSON.toString(tokenObj))
+        //console.log(JSON.toString(tokenObj))
        // loadingView();
     }
 }
@@ -59,13 +85,13 @@ function getAccessToken(callback) {
   // Do we have a token already?
   if (tokenObj.accessToken && !isExpired) {
     // Just return what we have
-    console.log('access token exists and isnt expired')
+    //console.log('access token exists and isnt expired')
     if (callback) {
       callback();
     }
   } else {
     // Attempt to do a hidden iframe request
-    console.log('silent request needed')
+    //console.log('silent request needed')
     window.localStorage.removeItem('tokenObj')
     //makeSilentTokenRequest(callback);
     syncAccount()
@@ -297,30 +323,6 @@ function validateIdToken(callback) {
 
 
 
-async function calendars(date){
-  today = date.toISOString();
-  let day = date.getDate()
-  console.log(day)
-  date.setDate(day+1)
-  tomorrow = date.toISOString();
-  let response = new Promise((resolve,reject) => { getAccessToken(()=>{
-    $.ajax({
-      type: 'GET',
-      url: calendar_url + `startdatetime=${today}&enddatetime=${tomorrow}&$top=10`,
-      headers: {
-          "Authorization": "Bearer " + tokenObj.accessToken,
-          'Prefer': 'outlook.timezone="Eastern Standard Time"'
-          }
-    }).done(function(data){
-      
-      window.localStorage.setItem('todayCalendar',JSON.stringify(data))
-      resolve(data)
-      })
-  })})
-  
-  let result = await response
-  return result
-}
 
 
   

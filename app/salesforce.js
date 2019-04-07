@@ -4,7 +4,7 @@
 
 
 
-searchSF('tod@modernostrategies.com	')
+
 let SFDC = "https://wordstream.my.salesforce.com/"
 let gainsight ="https://wordstream--jbcxm.na66.visual.force.com/apex/JBCXM__customersuccess360?cid="
 async function searchSF(email){
@@ -13,10 +13,10 @@ async function searchSF(email){
     let sfData = {};
     
     //check that contact data is not in existence
-    if (window.localStorage.getItem(email)){
+    /*if (window.localStorage.getItem(email)){
         console.log('contact data already exists')
         return
-    }
+    }*/
 
     let promise = new Promise ((resolve,reject) =>{
         fetch(target, {credentials: "include", mode: 'cors'}).then(function(response) {
@@ -28,23 +28,31 @@ async function searchSF(email){
             let parser = new DOMParser();
             doc = parser.parseFromString(text, "text/html");
             if (checker!=-1){
-                alert('You are not logged in. Please go to salesforce.com and log in')
+                //alert('You are not logged in. Please go to salesforce.com and log in')
                 return
             }
             try {
                 var hrf = doc.getElementById('Account_body').getElementsByTagName('table')[0].rows[1].cells[1].getElementsByTagName('a')[0].getAttribute('href');
             }
             catch(err){
-                let message = err + '. email is:' + email;
+                let message = err + '. Error tiere 1 email is:' + email;
                 console.log(message)
+                try{
+                    hrf = doc.getElementById("Contact_body").getElementsByTagName('table')[0].rows[1].cells[2].getElementsByTagName('a')[0].getAttribute('href');
+                }
+                catch(err){
+                    let message = err + '.Error tier 2 email is:' + email;
+                    console.log(message)
+                }
             }
             let sfid = hrf.split('?')[0];
             sfid = sfid.slice(1);
+            console.log('sfid',sfid)
             sfData.sfid = sfid;
             window.localStorage.setItem(email,JSON.stringify(sfData));
-            parseSFID(hrf,email)
-            .then(()=>{resolve()});
-        })
+            parseSFID(sfid, email)
+            .then(()=>{resolve()}).catch((err)=> {reject(err)});
+        }).catch((err)=> {reject(err)})
         
     })
     let result = await promise
@@ -53,6 +61,7 @@ async function searchSF(email){
 
 async function parseSFID(hrf,email) {
     let sfData = JSON.parse(window.localStorage.getItem(email))
+    let profiles = await parseProfiles(hrf);
     let promise = new Promise((resolve,reject)=> {
         fetch(SFDC+hrf,{credentials: "include", mode: 'cors'})
         .then(response=>{return response.text()})
@@ -60,8 +69,7 @@ async function parseSFID(hrf,email) {
             let id = sfData.sfid + '_00N80000004l7nV_body'
             let parser = new DOMParser();
             doc = parser.parseFromString(text, "text/html");
-            let profiles =doc.getElementById(id).getElementsByClassName("list")[0].rows;
-            
+             //was let profiles = doc.getElementById(id).getElementsByClassName("list")[0].rows
             let company = doc.getElementById("acc2_ileinner").innerText.replace("[View Hierarchy]","").trim();
             let l = profiles.length;
             //console.log('in Salesforce.js, company:', company)
@@ -85,13 +93,14 @@ async function parseSFID(hrf,email) {
             
             window.localStorage.setItem(email,JSON.stringify(sfData));
             resolve()   
-        })
+        }).catch((err)=> {reject(err)})
     })
     
     let result = await promise;
     return result;
 }
         
+
 function checkSF(){
     return new Promise((resolve,reject)=>{
         fetch("https://wordstream.my.salesforce.com/", {credentials: "include", mode: 'cors'}).then(function(response) {
@@ -100,14 +109,33 @@ function checkSF(){
             //console.log(text)
             let error = 'redirectOnLoad()';
             let checker = text.search(error);
-            if (checker!=-1){
+            if (checker.length!=-1){
                 resolve(true)
             }
-            resolve(false)
+            else {
+                resolve(false)
+            }
         })
     })
 }
+
+
+async function parseProfiles(hrf){
+    let target = "https://wordstream.my.salesforce.com/a06?rlid=00N80000004l7nV&id=" + hrf; 
+    return fetch(target,{credentials: "include", mode: 'cors'})
+    .then((response)=>{return response.text()})
+    .then(text=>{
+        let parser = new DOMParser();
+        doc = parser.parseFromString(text, "text/html");
+        let profiles = doc.getElementsByClassName("pbBody")[0].getElementsByClassName("list")[0].rows;
+        return profiles
+
+
+    })
     
+}
+
+//searchSF('ben@todayslocalmedia.com')
 
         /*fetch(hrf.getAttribute('href'), {credentials: "include", mode: 'cors'})
             .then(response=> {return response.text})
