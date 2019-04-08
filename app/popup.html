@@ -2,7 +2,7 @@
 <script src ="/lib/jsrsasign-all-min.js"></script>
 <script  src = "/lib/jquery.js"></script>
 
-<script  src = "/lib/bootstrap-4.3.1-dist/js/bootstrap.min.js"></script>
+<script  src = "/lib/bootstrap-4.3.1-dist/js/bootstrap.js"></script>
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 <link rel='stylesheet' href='styles.css'>
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
@@ -28,17 +28,17 @@
        
 </header>
 <body  style="height:400px">
-    
-    
-    <!--<div id='buttons'>
-    <p id='return'></p>
-    <button id="getStuff" type='button' class="btn btn-outline-primary">GetStuff</button>   
-    </div>-->
-    <div id='loading' style='width:100%;height:100%;text-align: center; background-color: white; z-index: 9999; margin: 0px 0px 0px 0px' >
-        <div class="spinner-border" style="margin-top: 25%; margin-bottom: 25%" role="status">
-            <span style='display: inline-block'class="sr-only">Loading...</span>
+      <nav>
+        <div class="nav nav-tabs" id="nav-tab" role="tablist">
+          <a class="nav-item nav-link active" id="nav-home-tab" data-toggle="tab" href="#calendar" role="tab" aria-controls="calendar" aria-selected="true">Calendars</a>
+          <a class="nav-item nav-link" id="nav-profile-tab" data-toggle="tab" href="#pinned" role="tab" aria-controls="pinned" aria-selected="false">Pinned</a>
         </div>
-    </div>
+      </nav>
+
+      <div class="tab-content" id="nav-tabContent">
+        <div class="tab-pane fade show active" id="calendar" role="tabpanel" aria-labelledby="calendar-tab"></div>
+        <div class="tab-pane fade" id="pinned" role="tabpanel" aria-labelledby="pinned-tab"></div>
+      </div>
 </body>
 <script src= 'view.js'></script>
 <script src='salesforce.js'></script>

@@ -12,6 +12,8 @@ $('#loading').show()
 $('#buttons').hide()
 $('#today').click(makeToday)
 $('document').ready(checkIn())
+$('document').ready(makePinned())
+
 
 function loadingView(){
     $('#loading').toggle();
@@ -21,7 +23,7 @@ function loadingView(){
 
   //rewrite this as a function that calls calendars --> and calendars calls it back at the end.
 function makeToday(){
-    let today = new Date('2019-04-08T00:00:00');
+    let today = new Date();
     if (window.localStorage.getItem('today')!= today.toDateString()) {
         console.log('Just logged in, or new day');
         calendars(today)
@@ -43,6 +45,7 @@ async function makeCards() {
     
     //check that salesforce is logged in, halt function & offer SF redirect if not
     let status = await checkSF();
+    console.log('status',status)
     for (let i=0; i<l; i++){
         //find all calendly made appointemnts
         let calendly = /calendly.com/i;
@@ -63,7 +66,8 @@ async function makeCards() {
             
             if (!window.localStorage.getItem(email)){
                 //checkSF only if client info is not stored.
-                if(!status){loginSF(); return}
+                console.log('status in frame', status)
+                if(status){loginSF(); return}
                 
                 searchSF(email).then(function() {
                 let client =JSON.parse(window.localStorage.getItem(email))
@@ -71,14 +75,14 @@ async function makeCards() {
                 client.name = name;
                 appointment.client = client;
                 
-                $('body').append(makeFrame(appointment))
+                $('#calendar').append(makeFrame(appointment))
                 }).catch((err)=>{
                     
                     let client = {}
                     client.email = email;
                     client.name = name
                     appointment.client = client;
-                    $('body').append(makeFrame(appointment))
+                    $('#calendar').append(makeFrame(appointment))
                     console.log(err)
                 })
             }
@@ -89,7 +93,7 @@ async function makeCards() {
                     client.email = email;
                     client.name = name
                     appointment.client = client;
-                    $('body').append(makeFrame(appointment))
+                    $('#calendar').append(makeFrame(appointment))
             
 
                 
@@ -111,4 +115,22 @@ function loginSF(){
         chrome.tabs.create({url:"https://wordstream.my.salesforce.com/"})
     }
 }
+
+function makePinned(){
+    let pinned = window.localStorage.getItem('pinnedClients')
+    if (pinned) {
+        console.log('pinned',pinned)
+        pinned = JSON.parse(pinned)
+        
+        for (email of pinned) {
+            console.log('email', email)
+            let client = JSON.parse(window.localStorage.getItem(email))
+            console.log(client)
+            client.email = email;
+            let card = makePinnedCard(client) 
+            $('#pinned').append(card)
+        }
+    }
+}
+
 

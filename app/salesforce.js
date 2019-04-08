@@ -79,7 +79,7 @@ async function parseSFID(hrf,email) {
                 let obj = {}
                 let element= profiles[i];
                 if  (element.cells[10].innerHTML != '&nbsp;'){
-                    console.log(`Email = ${email}; this text should be a date`,element.cells[10].innerHTML)
+                    //console.log(`Email = ${email}; this text should be a date`,element.cells[10].innerHTML)
                     continue;
                 }
                 obj.ws= element.cells[1].innerText;
@@ -103,16 +103,23 @@ async function parseSFID(hrf,email) {
 
 function checkSF(){
     return new Promise((resolve,reject)=>{
+        //console.log('promise')
         fetch("https://wordstream.my.salesforce.com/", {credentials: "include", mode: 'cors'}).then(function(response) {
             return response.text()})
         .then(function(text){
-            //console.log(text)
+            //console.log("checkSFText",text)
             let error = 'redirectOnLoad()';
+            let error2 = 'Login to your Salesforce Customer Account'
             let checker = text.search(error);
-            if (checker.length!=-1){
+            let checker2 = text.search(error2)
+            //console.log('checker', checker)
+            //console.log('checker2',checker2)
+            if (checker!=-1 || checker2 != -1){
+                //console.log('true')
                 resolve(true)
             }
             else {
+                //console.log('false')
                 resolve(false)
             }
         })

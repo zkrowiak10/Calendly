@@ -57,3 +57,38 @@ ul {
     padding: 0;
     margin-bottom: 10px;
   }
+
+  .spnnr {
+    width:100%;
+  
+    width:100%;
+    
+    text-align: center; 
+    background-color: white; 
+    z-index: 9999; 
+    margin: 0px 0px 0px 0px
+  }
+
+  .spnnr-border {
+    margin: auto;
+    
+    
+  }
+
+  .rotate {
+      transform: rotate(-90deg)
+  }
+
+  .unpinned {
+      opacity: .4;
+      outline: 5px;
+      outline-color: green;
+      border-color: green ;
+  }
+
+  .pinned {
+    opacity: 1;
+    outline: 5px;
+    outline-color: green;
+    border-color: green ;
+}
