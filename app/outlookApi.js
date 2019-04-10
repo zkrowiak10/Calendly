@@ -211,7 +211,7 @@ function parseHashParams(hash) {
   return paramarray;
 }
 
-
+//code sourced from microsoft api tutorial.
 function handleTokenResponse(hash) {
   // clear tokens
   sessionStorage.removeItem('accessToken');
@@ -245,8 +245,7 @@ function handleTokenResponse(hash) {
   validateIdToken(function(isValid) {
     if (isValid) {
       // Re-render token to handle refresh
-      console.log('token is valid')
-      $("#return").text('All Good')
+      
     }
   })
 }
@@ -304,12 +303,12 @@ function validateIdToken(callback) {
 
   // Now that we've passed our checks, save the bits of data
   // we need from the token.
-  console.log('payload',payload)
-  console.log('preferred username', payload.preferred_username)
+
   sessionStorage.userDisplayName = payload.name;
   sessionStorage.userSigninName = payload.preferred_username;
   tokenObj.userDisplayName = payload.name;
   tokenObj.userSigninName = payload.preferred_username;
+ 
 
   // Per the docs at:
   // https://azure.microsoft.com/en-us/documentation/articles/active-directory-v2-protocols-implicit/#send-the-sign-in-request

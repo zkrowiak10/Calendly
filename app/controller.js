@@ -10,9 +10,12 @@ $('#login').click(syncAccount)
 $('#getStuff').click(calendars)
 $('#loading').show()
 $('#buttons').hide()
-$('#today').click(makeToday)
+$('#today').click(()=>{
+    $('#calendar').children().remove();
+    makeToday()})
 $('document').ready(checkIn())
 $('document').ready(makePinned())
+$('#pinIt').click(makePinningDialogue)
 
 
 function loadingView(){

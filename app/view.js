@@ -12,7 +12,7 @@ function makeFrame(event){
     container.data("data-startTime",startTime)
     header = $('<div>', {class: "card-header"})
     header.append(`<h6 style="display:inline" >${startTime}: ${eventType} with ${event.client.name}</h6>
-    <a syle="display:inline" href="mailto: ${event.client.email}" 
+    <a syle="display:inline"  href="mailto: ${event.client.email}" 
     target="_blank" ><i class="fas fa-envelope"></i></a>`)
     
     refresh = $('<button style="float:right; display:inline" type="button" class="png-button"><i  style="color:0169d8" class="fas fa-sync-alt"></button>')
@@ -38,7 +38,8 @@ function makeFrame(event){
       console.log('pinnedClients',pinnedClients)
 
       if (client.pinned) {
-        pinnedClients.pop(event.client.email)
+        let i = pinnedClients.indexOf(event.client.email)
+        pinnedClients.splice(i,1)
         client.pinned = false
       }
       else {
@@ -206,13 +207,24 @@ function makePinnedCard(client) {
     header = $('<div>', {class: "card-header"})
     header.append(`<h6 style="display:inline" >${client.name} from ${client.company}</h6>
     <a syle="display:inline" href="mailto: ${client.email}" 
-    target="_blank" ><i class="fas fa-envelope"></i></a>`)
-    
+    target="_blank" ><i class="fas fa-envelope"></i></a>`);
+    let trash =  $('<button style="float:right; display:inline; margin-right:10px; color:0169d8" type="button" class=" png-button"><i class="far fa-trash-alt"></i></button>')
     refresh = $('<button style="float:right; display:inline" type="button" class="png-button"><i  style="color:0169d8" class="fas fa-sync-alt"></button>')
     refresh.click(()=>{refreshCard(card, cardInfo, event)})
-    
+    trash.click(()=> {
+      let pinnedClients = JSON.parse(window.localStorage.getItem('pinnedClients'))
+      let i = pinnedClients.indexOf(client.email)
+      pinnedClients.splice(i,1)
+      client.pinned = false
+      container.remove()
+      window.localStorage.setItem('pinnedClients', JSON.stringify(pinnedClients))
+      window.localStorage.setItem(client.email, JSON.stringify(client))
+
+
+    })
   
     header.append(refresh)
+    header.append(trash)
     card.append(header)
 
     container.append(card)
