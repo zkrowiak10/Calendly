@@ -2,7 +2,7 @@
 var authEndpoint = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?";
 var redirectUri = chrome.identity.getRedirectURL("outlook");
 var appId = 'd25c3df7-f3bc-48f3-ba05-b395304067e7';
-var scopes = 'openid Calendars.Read';
+var scopes = 'openid Calendars.Read user.read';
 var calendar_url = 'https://graph.microsoft.com/v1.0/me/calendarview?'
 var tokenObj = JSON.parse(window.localStorage.getItem('tokenObj'));
 
@@ -20,10 +20,14 @@ function checkIn(){
     //console.log('logged in',tokenObj)
     $('#logout').show();
     $('#login').hide();
+    $('#me').text(open('me').name)
     loadingView();
     makeToday()
+  
   }
 }
+
+//testing me function
 
 async function calendars(date){
   
@@ -38,10 +42,9 @@ async function calendars(date){
       url: calendar_url + `startdatetime=${today}&enddatetime=${tomorrow}&$top=10`,
       headers: {
           "Authorization": "Bearer " + tokenObj.accessToken,
-          'Prefer': 'outlook.timezone="Eastern Standard Time"' //undo hardcoding later
+          'prefer': 'outlook.timezone="Eastern Standard Time"'
           }
     }).done(function(data){
-      
       window.localStorage.setItem('todayCalendar',JSON.stringify(data))
       resolve(data)
       })
@@ -60,7 +63,23 @@ function syncAccount(){
             handleTokenResponse(response);
             //console.log('tokenObj after handleToken',tokenObj)
             window.localStorage.setItem('tokenObj', JSON.stringify(tokenObj))
-            chrome.storage.sync.set({loggedIn:true})
+            chrome.storage.sync.set({loggedIn:true});
+            $.ajax({
+              type: 'GET',
+              url: "https://graph.microsoft.com/v1.0/me",
+              headers: {
+                  "Authorization": "Bearer " + tokenObj.accessToken,
+                  }
+            }).done(function(data){
+               console.log('me', data)
+               let me = {}
+               me.email = data.mail 
+               me.name = data.displayName
+               save('me', me)
+               $('#me').text(me.name)
+               makeToday()
+             
+              })
             //console.log('stored')
             $('#login').hide();
             $('#logout').show();
@@ -321,7 +340,15 @@ function validateIdToken(callback) {
 }
 
 
+function save(key, value) {
+  value = JSON.stringify(value)
+  window.localStorage.setItem(key, value)
+}
 
+function open(key) {
+  let object = window.localStorage.getItem(key)
+  return JSON.parse(object)
+}
 
 
   

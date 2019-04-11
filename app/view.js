@@ -83,10 +83,10 @@ function makeCardInfo(client) {
     //create top row buttons
     let clientHeader = $('<ul>')
     clientHeader.append(`<li>  <h6 style="display:inline" >${client.company}</h6>  </li>`)
-    let sfButton = $(`<button type="button" class="btn-sm btn-primary">Go To Salesforce</button>`)
+    let sfButton = $(`<button type="button" class="btn-sm btn-primary">Salesforce</button>`)
     sfButton.click(()=>{createTab(SFDC + client.sfid)})
     clientHeader.append($('<li>').append(sfButton))
-    let gButton = $(`<button type="button" class="btn-sm btn-primary">Go To Gainsight</button>`)
+    let gButton = $(`<button type="button" class="btn-sm btn-primary">Gainsight</button>`)
     gButton.click(()=>{createTab(gainsight + client.sfid)})
     clientHeader.append($('<li>').append(gButton))
     clientHeader.append(`<li></li>`)

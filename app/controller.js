@@ -12,6 +12,7 @@ $('#loading').show()
 $('#buttons').hide()
 $('#today').click(()=>{
     $('#calendar').children().remove();
+    save('today',"")
     makeToday()})
 $('document').ready(checkIn())
 $('document').ready(makePinned())
@@ -27,12 +28,17 @@ function loadingView(){
   //rewrite this as a function that calls calendars --> and calendars calls it back at the end.
 function makeToday(){
     let today = new Date();
+    today.setHours(0,0,0,0)
+    checkSF()
     if (window.localStorage.getItem('today')!= today.toDateString()) {
         console.log('Just logged in, or new day');
         calendars(today)
         .then(()=> {
             makeCards()
-            window.localStorage.setItem('today',today)
+            today = new Date(); //need to reset this value as the calendars function changes the day to get tomorrow's date
+            today.setHours(0,0,0,0)
+            console.log(today.toDateString())
+            window.localStorage.setItem('today',today.toDateString())
         })
     }
     else {
@@ -47,8 +53,9 @@ async function makeCards() {
     let l = appointments.value.length; 
     
     //check that salesforce is logged in, halt function & offer SF redirect if not
-    let status = await checkSF();
+    //
     console.log('status',status)
+
     for (let i=0; i<l; i++){
         //find all calendly made appointemnts
         let calendly = /calendly.com/i;
@@ -60,7 +67,7 @@ async function makeCards() {
             //get first client that is not me (current user later)
             let email = appointment.attendees[0].emailAddress.address;
             let name= appointment.attendees[0].emailAddress.name
-            if (email == "zkrowiak@wordstream.com") { //must be revised later to reflect current user!!
+            if (email == open('me').email) { //must be revised later to reflect current user!!
                 email =appointment.attendees[1].emailAddress.address
                 name = appointment.attendees[1].emailAddress.name
             }
@@ -69,10 +76,13 @@ async function makeCards() {
             
             if (!window.localStorage.getItem(email)){
                 //checkSF only if client info is not stored.
+                //let status = await checkSF();
                 console.log('status in frame', status)
-                if(status){loginSF(); return}
+                //if(status){loginSF(); return}
                 
-                searchSF(email).then(function() {
+                searchSF(email).then(function(resolve) {
+                console.log('resolve', resolve)
+                if(!resolve){let errorOccured=true} 
                 let client =JSON.parse(window.localStorage.getItem(email))
                 client.email = email;
                 client.name = name;
@@ -86,7 +96,8 @@ async function makeCards() {
                     client.name = name
                     appointment.client = client;
                     $('#calendar').append(makeFrame(appointment))
-                    console.log(err)
+                    loginSF()
+                    return
                 })
             }
             else {
