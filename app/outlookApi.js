@@ -195,6 +195,7 @@ function buildAuthUrl() {
     nonce: sessionStorage.authNonce,
     response_mode: 'fragment'
   };
+  console.log(redirectUri)
   
     return authEndpoint + $.param(authParams);
   }
