@@ -25,17 +25,17 @@ function makeFrame(event){
     header.append(refresh)
     let pin = $('<button style="float:right; display:inline; margin-right:10px; color:0169d8" type="button" class=" png-button"><i class="unpinned fas fa-thumbtack"></i></button>')
     if (client.pinned) {
-      console.log('this client is pinned')
+      //console.log('this client is pinned')
       pin.find('i').toggleClass('pinned')
     }
     
     pin.click(()=>{
       container.find('.unpinned').toggleClass('pinned')
       let pinnedClientsStored = JSON.parse(window.localStorage.getItem('pinnedClients'))
-      console.log('pinnedCLientStored', pinnedClientsStored)
+      //console.log('pinnedCLientStored', pinnedClientsStored)
       let pinnedClients =[]
-      if (pinnedClientsStored != null) {console.log('ifhappens',pinnedClientsStored); pinnedClients = pinnedClientsStored}
-      console.log('pinnedClients',pinnedClients)
+      if (pinnedClientsStored != null) {pinnedClients = pinnedClientsStored}
+      //console.log('pinnedClients',pinnedClients)
 
       if (client.pinned) {
         let i = pinnedClients.indexOf(event.client.email)
@@ -43,7 +43,7 @@ function makeFrame(event){
         client.pinned = false
       }
       else {
-        console.log('pinned clients', pinnedClients)
+        //console.log('pinned clients', pinnedClients)
         pinnedClients.push(event.client.email)
         client.pinned=true;
         client.name = event.client.name;
@@ -284,6 +284,5 @@ function makePinnedCardInfo(client) {
   function getEventType(body) {
      let re = /<p>Event Name: (\w* \w* \w*)\W*/i
      result = re.exec(body)[1]
-     console.log('result of regex', result)
      return result
   }
