@@ -1,6 +1,6 @@
 {
     "name": "Calendly Assist",
-    "version": "0.0.0.3",
+    "version": "0.0.0.4",
     "description": "Integrate with calendly.",
     "manifest_version": 2,
     "icons": { "16": "icon16.png",

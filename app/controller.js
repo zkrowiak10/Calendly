@@ -148,3 +148,65 @@ function makePinned(){
 }
 
 
+function makePinningDialogue() {
+    chrome.tabs.query({'active':true, 'currentWindow':true}, (tab)=>{
+        let url = tab[0].url
+        if (url.search("https://wordstream.my.salesforce.com/")==-1) {
+            alert('This function is only available on Salesforce.')
+        }
+        var re = /salesforce.com\/(\w*)\?*/;
+        //console.log(re.exec(url))
+        sfid  = re.exec(url)[1]
+        fetch(SFContactList+sfid, {credentials: "include", mode: 'cors'})
+        .then((response)=>{return response.text()})
+        .then(text=>{
+            let card=$('<div id="pinnedCard" class="card">')
+            let form = $('<form style="margin:10px;  box-shadow: 2px 2px 3px gray" class="card-header form-group">Please Choose A Primary Contact</form>')
+            let options = $('<div class=card-body>')
+            let parser = new DOMParser();
+            doc = parser.parseFromString(text, "text/html");
+            let contacts = doc.getElementsByClassName("pbBody")[0].getElementsByClassName("list")[0].rows;
+            let l = contacts.length
+            for (let i=1; i<l; i++) {
+                contact = contacts[i];
+                //console.log('contact',contact)
+                if (contact.cells[4].children[0].getAttribute('alt') == "Not Checked") {continue}
+                let name = contact.cells[1].innerText
+                let email = contact.cells[3].innerText
+                options.append(`<input type='radio' name='client' data-name="${name}" value="${email}"> ${name}<br>`)
+                
+
+            }
+            let button = $('<button  type="button" class="btn btn-outline-primary">Submit</button>')
+            button.click(()=>{customPin(sfid); $('#pinnedCard').remove()} )
+            form.append(options)
+            form.append(button)
+            
+            card.append(form)
+            $('#pinnedDialogue').append(card)
+        })    
+
+
+
+    })
+}
+
+function customPin(sfid) {
+    let email = $('#pinnedDialogue').find("input[name='client']:checked").val()
+    let name = $('#pinnedDialogue').find("input[name='client']:checked").data().name
+    //console.log('name' , name.name)
+    searchSF(email).then(()=>{
+        let client = JSON.parse(window.localStorage.getItem(email));
+        client.name = name
+        client.pinned=true
+        $('#pinned').append(makePinnedCard(client))
+        client.pinned=true;
+        let pinnedClients = JSON.parse(window.localStorage.getItem('pinnedClients'))
+        if (!pinnedClients) {pinnedClients = []}
+        window.localStorage.setItem(email, JSON.stringify(client))
+        pinnedClients.push(email);
+        window.localStorage.setItem('pinnedClients', JSON.stringify(pinnedClients))
+
+    })
+
+}

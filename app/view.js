@@ -142,6 +142,7 @@ function createTab(url){
 
 async function refreshCard(card, cardInfo, event){
   let email = card.data('email')
+  window.localStorage.removeItem(email)
   cardInfo.children().remove()
   let spinner = makeSpinner()
   cardInfo.append(spinner)
@@ -210,6 +211,8 @@ function makePinnedCard(client) {
     target="_blank" ><i class="fas fa-envelope"></i></a>`);
     let trash =  $('<button style="float:right; display:inline; margin-right:10px; color:0169d8" type="button" class=" png-button"><i class="far fa-trash-alt"></i></button>')
     refresh = $('<button style="float:right; display:inline" type="button" class="png-button"><i  style="color:0169d8" class="fas fa-sync-alt"></button>')
+    show = $(`<button style="float:right; display:inline; margin-left:10px" type="button" class="arrow png-button"></button>`)
+    arrow = $(`<i style="color:0169d8" class="fas fa-chevron-left"></i>`)
     refresh.click(()=>{refreshCard(card, cardInfo, event)})
     trash.click(()=> {
       let pinnedClients = JSON.parse(window.localStorage.getItem('pinnedClients'))
@@ -222,14 +225,23 @@ function makePinnedCard(client) {
 
 
     })
-  
+    
+    
+    show.on('click',()=>{
+      p.slideToggle()
+      container.find('.arrow').toggleClass('rotate')
+      
+    })
+    header.append(show)
     header.append(refresh)
     header.append(trash)
+    show.append(arrow)
+    
     card.append(header)
 
     container.append(card)
-   
-    container.append(makePinnedCardInfo(client))
+    let p = makePinnedCardInfo(client)
+    card.append(p.hide())
     return container
 
 }

@@ -8,7 +8,7 @@ var tokenObj = JSON.parse(window.localStorage.getItem('tokenObj'));
 
 function checkIn(){
   if (!tokenObj){
-    //console.log("the token object is undefined, login required",tokenObj)
+    ////console.log("the token object is undefined, login required",tokenObj)
     tokenObj={}
     loadingView()
   }
@@ -17,7 +17,7 @@ function checkIn(){
     
     window.localStorage.setItem('loggedIn',true)
     
-    //console.log('logged in',tokenObj)
+    ////console.log('logged in',tokenObj)
     $('#logout').show();
     $('#login').hide();
     $('#me').text(open('me').name)
@@ -55,13 +55,13 @@ async function calendars(date){
 }
 
 function syncAccount(){
-    //console.log('beginning')
+    ////console.log('beginning')
     //loadingView();
     if (!window.localStorage.getItem('tokenObj')) {            
         let requestURL = {'url': buildAuthUrl(), 'interactive':true}
         chrome.identity.launchWebAuthFlow(requestURL,function(response){
             handleTokenResponse(response);
-            //console.log('tokenObj after handleToken',tokenObj)
+            ////console.log('tokenObj after handleToken',tokenObj)
             window.localStorage.setItem('tokenObj', JSON.stringify(tokenObj))
             chrome.storage.sync.set({loggedIn:true});
             $.ajax({
@@ -71,7 +71,7 @@ function syncAccount(){
                   "Authorization": "Bearer " + tokenObj.accessToken,
                   }
             }).done(function(data){
-               console.log('me', data)
+               //console.log('me', data)
                let me = {}
                me.email = data.mail 
                me.name = data.displayName
@@ -80,18 +80,18 @@ function syncAccount(){
                makeToday()
              
               })
-            //console.log('stored')
+            ////console.log('stored')
             $('#login').hide();
             $('#logout').show();
             //loadingView();
         })
     }
     else{
-        //console.log('already logged in')
+        ////console.log('already logged in')
         $('#return').text('already in')
         $('#login').hide();
         $('#logout').show();
-        //console.log(JSON.toString(tokenObj))
+        ////console.log(JSON.toString(tokenObj))
        // loadingView();
     }
 }
@@ -104,13 +104,13 @@ function getAccessToken(callback) {
   // Do we have a token already?
   if (tokenObj.accessToken && !isExpired) {
     // Just return what we have
-    //console.log('access token exists and isnt expired')
+    ////console.log('access token exists and isnt expired')
     if (callback) {
       callback();
     }
   } else {
     // Attempt to do a hidden iframe request
-    //console.log('silent request needed')
+    ////console.log('silent request needed')
     window.localStorage.removeItem('tokenObj')
     //makeSilentTokenRequest(callback);
     syncAccount()
@@ -122,10 +122,10 @@ function makeSilentTokenRequest(callback) {
     let requestURL = buildSilentAuthUrl();
     sessionStorage.idToken = tokenObj.id_token;
     fetch(requestURL, {credentials: "include", mode: 'cors'}).then(function(response){
-      console.log('tknReq', response)
+      //console.log('tknReq', response)
       handleTokenResponse(response);
       window.localStorage.setItem('tokenObj', JSON.stringify(tokenObj))
-      console.log('stored')
+      //console.log('stored')
       $('#login').hide();
       $('#logout').show();
       //loadingView();
@@ -138,7 +138,7 @@ function makeSilentTokenRequest(callback) {
         "Authorization": "Bearer " + tokenObj.accessToken
         }
   }).done(function(data){
-    console.log("the results of calendar query are:",data)
+    //console.log("the results of calendar query are:",data)
     window.localStorage.setItem('todayCalendar',JSON.stringify(data))
     resolve(data)
     })
@@ -160,7 +160,7 @@ function makeSilentTokenRequest(callback) {
 function logout(){
   window.localStorage.removeItem('tokenObj')
   window.localStorage.setItem('loggedIn',false)
-  console.log(tokenObj)
+  //console.log(tokenObj)
   $('#login').show();
   $('#logout').hide();
 }
@@ -195,7 +195,7 @@ function buildAuthUrl() {
     nonce: sessionStorage.authNonce,
     response_mode: 'fragment'
   };
-  console.log(redirectUri)
+  //console.log(redirectUri)
   
     return authEndpoint + $.param(authParams);
   }
@@ -245,7 +245,7 @@ function handleTokenResponse(hash) {
     sessionStorage.removeItem('authNonce');
     // Report error
     window.location.hash = '#error=Invalid+state&error_description=The+state+in+the+authorization+response+did+not+match+the+expected+value.+Please+try+signing+in+again.';
-    console.log('states dont match')
+    //console.log('states dont match')
     return;
   }
   sessionStorage.authState = '';
