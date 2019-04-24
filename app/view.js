@@ -162,6 +162,30 @@ async function refreshCard(card, cardInfo, event){
   
 }
 
+async function refreshPinnedCard(card, pinnedCardInfo){
+  let email = card.data('email')
+  let client = open(email)
+  console.log('client is', client)
+  window.localStorage.removeItem(email)
+  pinnedCardInfo.children().remove()
+  let spinner = makeSpinner()
+  pinnedCardInfo.append(spinner)
+  
+  let status = await checkSF();
+  if(status){loginSF(); return}
+  else{
+    parseSFID(client.sfid, email)
+      .then(()=>{
+        let newCardInfo= makePinnedCardInfo(client)
+        pinnedCardInfo.children().remove()
+        pinnedCardInfo.append(newCardInfo)
+
+      }
+      )
+    }
+  
+}
+
 function makeSpinner(){
   let spinnerBorder = $('<div class="spnnr">')
   let spinner= $(`<div class="spinner-border" >
@@ -213,7 +237,7 @@ function makePinnedCard(client) {
     refresh = $('<button style="float:right; display:inline" type="button" class="png-button"><i  style="color:0169d8" class="fas fa-sync-alt"></button>')
     show = $(`<button style="float:right; display:inline; margin-left:10px" type="button" class="arrow png-button"></button>`)
     arrow = $(`<i style="color:0169d8" class="fas fa-chevron-left"></i>`)
-    refresh.click(()=>{refreshCard(card, cardInfo, event)})
+    refresh.click(()=>{refreshPinnedCard(card, p)})
     trash.click(()=> {
       let pinnedClients = JSON.parse(window.localStorage.getItem('pinnedClients'))
       let i = pinnedClients.indexOf(client.email)
