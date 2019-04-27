@@ -1,8 +1,9 @@
 //config
 var authEndpoint = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?";
+var tokenEndPoint = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
 var redirectUri = chrome.identity.getRedirectURL("outlook");
 var appId = 'd25c3df7-f3bc-48f3-ba05-b395304067e7';
-var scopes = 'openid Calendars.Read user.read';
+var scopes = 'openid Calendars.Read user.read offline_access';
 var calendar_url = 'https://graph.microsoft.com/v1.0/me/calendarview?'
 var tokenObj = JSON.parse(window.localStorage.getItem('tokenObj'));
 
@@ -60,17 +61,42 @@ function syncAccount(){
     if (!window.localStorage.getItem('tokenObj')) {            
         let requestURL = {'url': buildAuthUrl(), 'interactive':true}
         chrome.identity.launchWebAuthFlow(requestURL,function(response){
-            handleTokenResponse(response);
-            ////console.log('tokenObj after handleToken',tokenObj)
-            window.localStorage.setItem('tokenObj', JSON.stringify(tokenObj))
-            chrome.storage.sync.set({loggedIn:true});
+            console.log('new respons', response)
+            let params = parseHashParams(response);
+            let code = params.code;
+            let formP = buildCodeAuthUrl(code);
             $.ajax({
-              type: 'GET',
-              url: "https://graph.microsoft.com/v1.0/me",
+              type: "POST",
+              url: tokenEndPoint,
               headers: {
-                  "Authorization": "Bearer " + tokenObj.accessToken,
-                  }
-            }).done(function(data){
+                "Content-Type": "application/x-www-form-urlencoded"
+              },
+              data: formP
+
+            }).then((response)=>{
+              console.log('ajax response: ', response)
+              handleTokenResponse(response);
+              window.localStorage.setItem('tokenObj', JSON.stringify(tokenObj))
+            }).done(function() {
+                      $.ajax({
+                        type: 'GET',
+                        url: "https://graph.microsoft.com/v1.0/me",
+                        headers: {
+                            "Authorization": "Bearer " + tokenObj.accessToken,
+                            }
+                      }).done(function(data){
+                      //console.log('me', data)
+                      let me = {}
+                      me.email = data.mail 
+                      me.name = data.displayName
+                      save('me', me)
+                      $('#me').text(me.name)
+                      makeToday()
+                    })
+              })
+            
+            
+        })/*.done(function(data){
                //console.log('me', data)
                let me = {}
                me.email = data.mail 
@@ -79,13 +105,15 @@ function syncAccount(){
                $('#me').text(me.name)
                makeToday()
              
-              })
+        })*/
+      
+          
             ////console.log('stored')
             $('#login').hide();
             $('#logout').show();
             //loadingView();
-        })
-    }
+        }
+    
     else{
         ////console.log('already logged in')
         $('#return').text('already in')
@@ -98,7 +126,7 @@ function syncAccount(){
 
 // Helper method to validate token and refresh
 // if needed
-function getAccessToken(callback) {
+async function getAccessToken(callback) {
   var now = new Date().getTime();
   var isExpired = now > parseInt(tokenObj.tokenExpires);
   // Do we have a token already?
@@ -109,51 +137,28 @@ function getAccessToken(callback) {
       callback();
     }
   } else {
-    // Attempt to do a hidden iframe request
-    ////console.log('silent request needed')
-    window.localStorage.removeItem('tokenObj')
-    //makeSilentTokenRequest(callback);
-    syncAccount()
+    await refreshToken();
   }
 }
 
-function makeSilentTokenRequest(callback) {
- /* // Build up a hidden iframe
-    let requestURL = buildSilentAuthUrl();
-    sessionStorage.idToken = tokenObj.id_token;
-    fetch(requestURL, {credentials: "include", mode: 'cors'}).then(function(response){
-      //console.log('tknReq', response)
+function refreshToken() {
+  return new Promise((resolve,reject) => {
+    refresh = buildRefreshUrl();
+    $.ajax({
+      type: "POST",
+      url: tokenEndPoint,
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      data: refresh
+    }
+    ).then((response)=>{
+      //console.log('refresh response: ', response)
       handleTokenResponse(response);
       window.localStorage.setItem('tokenObj', JSON.stringify(tokenObj))
-      //console.log('stored')
-      $('#login').hide();
-      $('#logout').show();
-      //loadingView();
-    })*/
-
-  /*$.ajax({
-    type: 'GET',
-    url: buildSilentAuthUrl(),
-    headers: {
-        "Authorization": "Bearer " + tokenObj.accessToken
-        }
-  }).done(function(data){
-    //console.log("the results of calendar query are:",data)
-    window.localStorage.setItem('todayCalendar',JSON.stringify(data))
-    resolve(data)
-    })
-}*/
-    var iframe = $('<iframe/>');
-    iframe.attr('id', 'auth-iframe');
-    iframe.attr('name', 'auth-iframe');
-    iframe.appendTo('body');
-    iframe.hide();
-
-    iframe.on('load',function() {
-      callback();
-    });
-
-    iframe.attr('src', buildSilentAuthUrl());
+      resolve();
+  })
+})
 }
   
 
@@ -187,7 +192,7 @@ function buildAuthUrl() {
   sessionStorage.authNonce = guid();
 
   var authParams = {
-    response_type: 'id_token token',
+    response_type: 'code',
     client_id: appId,
     redirect_uri: redirectUri,
     scope: scopes,
@@ -199,25 +204,45 @@ function buildAuthUrl() {
   
     return authEndpoint + $.param(authParams);
   }
-  function buildSilentAuthUrl() {
+  function buildCodeAuthUrl(authCode) {
     // Generate random values for state and nonce
     sessionStorage.authState = guid();
     sessionStorage.authNonce = guid();
   
     var authParams = {
-      response_type: 'id_token',
+      response_type: 'code',
+      grant_type: "authorization_code",
       client_id: appId,
       redirect_uri: redirectUri,
-      scope: 'openid',
+      code: authCode,
+      scope: scopes,
       state: sessionStorage.authState,
       nonce: sessionStorage.authNonce,
-      response_mode: 'fragment',
-      prompt: 'none'
-
+      client_secret: "ryztjeBLFH66]:~xWIX066$",
+      
     };
+    //console.log(redirectUri)
     
-      return authEndpoint + $.param(authParams);
+      return $.param(authParams);
     }
+    
+  function buildRefreshUrl(authCode) {
+      // Generate random values for state and nonce
+      refreshToken = tokenObj.refreshToken
+    
+      var authParams = {
+        grant_type: "refresh_token",
+        client_id: appId,
+        redirect_uri: redirectUri,
+        refresh_token: refreshToken,
+        scope: scopes,
+        client_secret: "ryztjeBLFH66]:~xWIX066$",
+        
+      };
+      //console.log(redirectUri)
+      
+        return $.param(authParams);
+      }
 function parseHashParams(hash) {
   var params = hash.split('#')[1].split('&');
   
@@ -231,25 +256,18 @@ function parseHashParams(hash) {
   return paramarray;
 }
 
+
 //code sourced from microsoft api tutorial.
 function handleTokenResponse(hash) {
   // clear tokens
-  sessionStorage.removeItem('accessToken');
-  sessionStorage.removeItem('idToken');
+  
 
-  var tokenresponse = parseHashParams(hash);
+  var tokenresponse = hash;
 
   // Check that state is what we sent in sign in request
-  if (tokenresponse.state != sessionStorage.authState) {
-    sessionStorage.removeItem('authState');
-    sessionStorage.removeItem('authNonce');
-    // Report error
-    window.location.hash = '#error=Invalid+state&error_description=The+state+in+the+authorization+response+did+not+match+the+expected+value.+Please+try+signing+in+again.';
-    //console.log('states dont match')
-    return;
-  }
-  sessionStorage.authState = '';
+  
   tokenObj.accessToken = tokenresponse.access_token;
+  tokenObj.refreshToken= tokenresponse.refresh_token;
 
   // Get the number of seconds the token is valid for,
   // Subract 5 minutes (300 sec) to account for differences in clock settings
