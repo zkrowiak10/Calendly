@@ -14,7 +14,7 @@ async function searchSF(email){
     let base = 'https://wordstream.my.salesforce.com/search/SearchResults?searchType=2&str=';
     let target = encodeURI(base+email);
     let sfData = {};
-    let test = JSON.parse(window.localStorage.getItem(email))
+    let test = open(email)
     if (test) {
         sfData = test
     }

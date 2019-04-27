@@ -163,11 +163,18 @@ function refreshToken() {
   
 
 function logout(){
-  window.localStorage.removeItem('tokenObj')
+  items =['tokenObj','me','pinnedClients']
+  for (item of items) {
+    window.localStorage.removeItem(item)
+  }
+  
+  $("#calendar").children().remove()
+  $("#pinned").children().remove()
   window.localStorage.setItem('loggedIn',false)
   //console.log(tokenObj)
   $('#login').show();
   $('#logout').hide();
+  $('#me').text('')
 }
 
 
@@ -366,6 +373,10 @@ function save(key, value) {
 
 function open(key) {
   let object = window.localStorage.getItem(key)
+  if (object == 'undefined' || !object) {
+    return null
+  }
+  //console.log('key and object', key, object)
   return JSON.parse(object)
 }
 

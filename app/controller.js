@@ -27,7 +27,7 @@ function loadingView(){
 
   //rewrite this as a function that calls calendars --> and calendars calls it back at the end.
 function makeToday(){
-    let today = new Date();
+    let today = new Date('4/29/2019');
     today.setHours(0,0,0,0)
     checkSF()
     if (window.localStorage.getItem('today')!= today.toDateString()) {
@@ -50,11 +50,8 @@ function makeToday(){
 
 async function makeCards() {
     let appointments = JSON.parse(window.localStorage.getItem('todayCalendar'))
-    let l = appointments.value.length; 
-    
-    //check that salesforce is logged in, halt function & offer SF redirect if not
-    //
-    console.log('status',status)
+    let l = appointments.value.length;
+    let cards = []
 
     for (let i=0; i<l; i++){
         //find all calendly made appointemnts
@@ -67,35 +64,35 @@ async function makeCards() {
             //get first client that is not me (current user later)
             let email = appointment.attendees[0].emailAddress.address;
             let name= appointment.attendees[0].emailAddress.name
-            if (email == open('me').email) { //must be revised later to reflect current user!!
-                email =appointment.attendees[1].emailAddress.address
+            if (email == open('me').email) { 
+                email = appointment.attendees[1].emailAddress.address
                 name = appointment.attendees[1].emailAddress.name
             }
 
-            if (resetMode){window.localStorage.removeItem(email)} //to reset local storage while developing
+            if (resetMode){ window.localStorage.removeItem(email) } //to reset local storage while developing
             
-            if (!window.localStorage.getItem(email)){
+            if (!open(email)){
                 //checkSF only if client info is not stored.
-                //let status = await checkSF();
-                console.log('status in frame', status)
+                //let status = await checkSF()
                 //if(status){loginSF(); return}
                 
                 searchSF(email).then(function(resolve) {
-                console.log('resolve', resolve)
-                if(!resolve){let errorOccured=true} 
-                let client =JSON.parse(window.localStorage.getItem(email))
-                client.email = email;
-                client.name = name;
-                appointment.client = client;
-                
-                $('#calendar').append(makeFrame(appointment))
+    
+                    let client = open(email)
+                    client.email = email;
+                    client.name = name;
+                    save(email, client)
+                    appointment.client = client;
+                    cards.push(makeFrame(appointment))
+                    
                 }).catch((err)=>{
                     
                     let client = {}
                     client.email = email;
                     client.name = name
                     appointment.client = client;
-                    $('#calendar').append(makeFrame(appointment))
+                    save(email, client)
+                    cards.push(makeFrame(appointment))
                     loginSF()
                     return
                 })
@@ -103,21 +100,22 @@ async function makeCards() {
             else {
                 //until client objects are consistent
                 
-                    let client =JSON.parse(window.localStorage.getItem(email))
+                    let client = open(email)
+                    console.log('found client' , client)
                     client.email = email;
-                    client.name = name
+                    client.name = name;
+                    save(email, client)
                     appointment.client = client;
-                    $('#calendar').append(makeFrame(appointment))
-            
-
-                
-                /*let client=JSON.parse(window.localStorage.getItem(email))
-                appointment.profiles = client.profiles
-                appointment.company = client.company;
-                $('body').append(makeFrame(appointment))*/
+                    cards.push(makeFrame(appointment))
             }
         };
     }
+    cards.sort(compareCards);
+    console.log('cards', cards)
+    for (card of cards) {
+        $('#calendar').append(card)
+    }
+
         
 }
 
@@ -208,4 +206,10 @@ function customPin(sfid) {
 
     })
 
+}
+
+function compareCards(a, b) {
+    dateA = new Date (a.data('time'))
+    dateB = new Date (b.data('time'))
+    return dateA.getTime() - dateB.getTime()
 }

@@ -3,10 +3,11 @@
 
 
 function makeFrame(event){
-    let client = JSON.parse(window.localStorage.getItem(event.client.email))
+    let client = open(event.client.email)
     let container = $("<div>", {class: 'card', style: "margin:15px"})
     let startTime = parseDatetime(event.start.dateTime)
     let card= $("<div>", {class: 'card '})
+    card.data('time', event.start.dateTime)
     let eventType = ''
     card.data("email",event.client.email)
     container.data("data-startTime",startTime)
