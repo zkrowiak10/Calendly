@@ -31,13 +31,13 @@ function makeToday(){
     today.setHours(0,0,0,0)
     checkSF()
     if (window.localStorage.getItem('today')!= today.toDateString()) {
-        //console.log('Just logged in, or new day');
+        console.log('Just logged in, or new day');
         calendars(today)
         .then(()=> {
             makeCards()
             today = new Date(); //need to reset this value as the calendars function changes the day to get tomorrow's date
             today.setHours(0,0,0,0)
-            //console.log(today.toDateString())
+            console.log(today.toDateString())
             window.localStorage.setItem('today',today.toDateString())
         })
     }
@@ -54,7 +54,7 @@ async function makeCards() {
     
     //check that salesforce is logged in, halt function & offer SF redirect if not
     //
-    //console.log('status',status)
+    console.log('status',status)
 
     for (let i=0; i<l; i++){
         //find all calendly made appointemnts
@@ -77,11 +77,11 @@ async function makeCards() {
             if (!window.localStorage.getItem(email)){
                 //checkSF only if client info is not stored.
                 //let status = await checkSF();
-                //console.log('status in frame', status)
+                console.log('status in frame', status)
                 //if(status){loginSF(); return}
                 
                 searchSF(email).then(function(resolve) {
-                //console.log('resolve', resolve)
+                console.log('resolve', resolve)
                 if(!resolve){let errorOccured=true} 
                 let client =JSON.parse(window.localStorage.getItem(email))
                 client.email = email;
@@ -125,7 +125,7 @@ function loginSF(){
     let confirm = window.confirm("You are not logged into salesforce. Go to Salesforce then come back to extension")
     
     if (confirm){
-        //console.log('confirmed')
+        console.log('confirmed')
         chrome.tabs.create({url:"https://wordstream.my.salesforce.com/"})
     }
 }
@@ -133,20 +133,19 @@ function loginSF(){
 function makePinned(){
     let pinned = window.localStorage.getItem('pinnedClients')
     if (pinned) {
-        //console.log('pinned',pinned)
+        console.log('pinned',pinned)
         pinned = JSON.parse(pinned)
         
         for (email of pinned) {
-            //console.log('email', email)
+            console.log('email', email)
             let client = JSON.parse(window.localStorage.getItem(email))
-            //console.log(client)
+            console.log(client)
             client.email = email;
             let card = makePinnedCard(client) 
             $('#pinned').append(card)
         }
     }
 }
-
 
 function makePinningDialogue() {
     chrome.tabs.query({'active':true, 'currentWindow':true}, (tab)=>{

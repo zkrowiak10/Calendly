@@ -104,10 +104,10 @@ function makeCardInfo(client) {
         td.append(`${profile.friendlyName}`)
         let wsPath = wordstreamLoginURI + profile.ws;
         let googlePath = googleURI+ profile.google
-        let button = $(`<button class="png-button" style='float:right; margin-right:5px' target="_blank" style="margin-right:5px"><img class="png" src="wordStream.png"></>` )
+        let button = $(`<button class="png-button" style='float:right; margin-right:5px' target="_blank" style="margin-right:5px"><img class="png" src="assets/wordStream.png"></>` )
         button.click(function() {createTab(wsPath)})
         td.append(button)
-        let google = $(`<button class="png-button" style='float:right; margin-right:5px' target="_blank" style="margin-right:5px"><img class="png" src="google-icon32.png"></>` )
+        let google = $(`<button class="png-button" style='float:right; margin-right:5px' target="_blank" style="margin-right:5px"><img class="png" src="assets/google-icon32.png"></>` )
         google.click(function() {createTab(googlePath)})
         td.append(google)
         //row.append(`<td>${profile.google}`)
@@ -142,10 +142,10 @@ function createTab(url){
 
 async function refreshCard(card, cardInfo, event){
   let email = card.data('email')
-  window.localStorage.removeItem(email)
   cardInfo.children().remove()
   let spinner = makeSpinner()
   cardInfo.append(spinner)
+  console.log('event in refresh: ', event)
   
   let status = await checkSF();
   if(status){loginSF(); return}
@@ -299,10 +299,10 @@ function makePinnedCardInfo(client) {
         td.append(`${profile.friendlyName}`)
         let wsPath = wordstreamLoginURI + profile.ws;
         let googlePath = googleURI+ profile.google
-        let button = $(`<button class="png-button" style='float:right; margin-right:5px' target="_blank" style="margin-right:5px"><img class="png" src="wordStream.png"></>` )
+        let button = $(`<button class="png-button" style='float:right; margin-right:5px' target="_blank" style="margin-right:5px"><img class="png" src="assets/wordStream.png"></>` )
         button.click(function() {createTab(wsPath)})
         td.append(button)
-        let google = $(`<button class="png-button" style='float:right; margin-right:5px' target="_blank" style="margin-right:5px"><img class="png" src="google-icon32.png"></>` )
+        let google = $(`<button class="png-button" style='float:right; margin-right:5px' target="_blank" style="margin-right:5px"><img class="png" src="assets/google-icon32.png"></>` )
         google.click(function() {createTab(googlePath)})
         td.append(google)
         //row.append(`<td>${profile.google}`)
