@@ -131,7 +131,7 @@ function loginSF(){
 function makePinned(){
     let pinned = open('pinnedClients')
     if (pinned) {
-        pinned = JSON.parse(pinned)
+        
         
         for (email of pinned) {
             let client = open(email)

@@ -231,6 +231,10 @@ function makePinnedCard(client) {
     let card= $("<div>", {class: 'card '})
     card.data("email", client.email)
     header = $('<div>', {class: "card-header"})
+    if (client.company.length>30) {
+      client.company = client.company.slice(0,30) + '...'
+
+    }
     header.append(`<h6 style="display:inline" >${client.name} from ${client.company}</h6>
     <a syle="display:inline" href="mailto: ${client.email}" 
     target="_blank" ><i class="fas fa-envelope"></i></a>`);
