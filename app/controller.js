@@ -3,20 +3,25 @@ const wordstreamLoginURI ='https://ppc.wordstream.com/admin/product_login/'
 const googleURI = 'https://ads.google.com/aw/overview?__e='
 
 
-$("#return").text('Jquery!')
-$('#logout').hide()
-$('#logout').click(logout)
-$('#login').click(syncAccount)  
-$('#getStuff').click(calendars)
-$('#loading').show()
-$('#buttons').hide()
-$('#today').click(()=>{
-    $('#calendar').children().remove();
-    save('today',"")
-    makeToday()})
-$('document').ready(checkIn())
-$('document').ready(makePinned())
-$('#pinIt').click(makePinningDialogue)
+
+
+function initiate() {
+    $('#logout').hide()
+    $('#logout').click(logout)
+    $('#login').click(syncAccount)  
+    $('#getStuff').click(calendars)
+    $('#loading').show()
+    $('#buttons').hide()
+    $('#today').click(()=>{
+        $('#calendar').children().remove();
+        save('today',"")
+        makeToday()})
+    $('document').ready(checkIn())
+    $('document').ready(makePinned())
+    $('#pinIt').click(makePinningDialogue)
+}
+
+initiate()
 
 
 function loadingView(){
@@ -27,7 +32,7 @@ function loadingView(){
 
   //rewrite this as a function that calls calendars --> and calendars calls it back at the end.
 function makeToday(){
-    let today = new Date('4/29/2019');
+    let today = new Date();
     today.setHours(0,0,0,0)
     checkSF()
     if (window.localStorage.getItem('today')!= today.toDateString()) {
@@ -42,7 +47,8 @@ function makeToday(){
         })
     }
     else {
-        makeCards();
+        makeCards()
+        
     }
 }
 
@@ -73,8 +79,6 @@ async function makeCards() {
             
             if (!open(email)){
                 //checkSF only if client info is not stored.
-                //let status = await checkSF()
-                //if(status){loginSF(); return}
                 
                 searchSF(email).then(function(resolve) {
     
@@ -98,10 +102,8 @@ async function makeCards() {
                 })
             }
             else {
-                //until client objects are consistent
-                
+
                     let client = open(email)
-                    console.log('found client' , client)
                     client.email = email;
                     client.name = name;
                     save(email, client)
@@ -111,7 +113,6 @@ async function makeCards() {
         };
     }
     cards.sort(compareCards);
-    console.log('cards', cards)
     for (card of cards) {
         $('#calendar').append(card)
     }
@@ -123,21 +124,17 @@ function loginSF(){
     let confirm = window.confirm("You are not logged into salesforce. Go to Salesforce then come back to extension")
     
     if (confirm){
-        console.log('confirmed')
         chrome.tabs.create({url:"https://wordstream.my.salesforce.com/"})
     }
 }
 
 function makePinned(){
-    let pinned = window.localStorage.getItem('pinnedClients')
+    let pinned = open('pinnedClients')
     if (pinned) {
-        console.log('pinned',pinned)
         pinned = JSON.parse(pinned)
         
         for (email of pinned) {
-            console.log('email', email)
-            let client = JSON.parse(window.localStorage.getItem(email))
-            console.log(client)
+            let client = open(email)
             client.email = email;
             let card = makePinnedCard(client) 
             $('#pinned').append(card)
@@ -148,13 +145,13 @@ function makePinned(){
 function makePinningDialogue() {
     chrome.tabs.query({'active':true, 'currentWindow':true}, (tab)=>{
         let url = tab[0].url
-        if (url.search("https://wordstream.my.salesforce.com/")==-1) {
+        if (url.search("https://wordstream.my.salesforce.com/")==-1) {  //validate tab
             alert('This function is only available on Salesforce.')
         }
         var re = /salesforce.com\/(\w*)\?*/;
         //console.log(re.exec(url))
         sfid  = re.exec(url)[1]
-        fetch(SFContactList+sfid, {credentials: "include", mode: 'cors'})
+        fetch(SFContactList+sfid, {credentials: "include", mode: 'cors'}) //go to list of contacts and return all primary contacts
         .then((response)=>{return response.text()})
         .then(text=>{
             let card=$('<div id="pinnedCard" class="card">')
@@ -166,9 +163,8 @@ function makePinningDialogue() {
             let l = contacts.length
             for (let i=1; i<l; i++) {
                 contact = contacts[i];
-                //console.log('contact',contact)
-                if (contact.cells[4].children[0].getAttribute('alt') == "Not Checked") {continue}
-                let name = contact.cells[1].innerText
+                if (contact.cells[4].children[0].getAttribute('alt') == "Not Checked") {continue} //passover non-primary contacts
+                let name = contact.cells[1].innerText 
                 let email = contact.cells[3].innerText
                 options.append(`<input type='radio' name='client' data-name="${name}" value="${email}"> ${name}<br>`)
                 
