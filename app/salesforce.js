@@ -72,6 +72,7 @@ async function parseSFID(hrf,email) {
     let sfData = JSON.parse(window.localStorage.getItem(email))
     if(!sfData) { sfData={};}
     let profiles = await parseProfiles(hrf);
+    
     let promise = new Promise((resolve,reject)=> {
         fetch(SFDC+hrf,{credentials: "include", mode: 'cors'})
         .then(response=>{return response.text()})
@@ -82,19 +83,21 @@ async function parseSFID(hrf,email) {
              //was let profiles = doc.getElementById(id).getElementsByClassName("list")[0].rows
             let company = doc.getElementById("acc2_ileinner").innerText.replace("[View Hierarchy]","").trim();
             let l = profiles.length;
+            console.log('length of profiles', l)
             ////console.log('in Salesforce.js, company:', company)
             sfData.company = company;
             sfData.profiles =[];
             for (let i=1; i<l; i++) {
                 let obj = {}
                 let element= profiles[i];
-                if  (element.cells[10].innerHTML != '&nbsp;'){
+                if  (element.cells[9].innerHTML != '&nbsp;'){
                     ////console.log(`Email = ${email}; this text should be a date`,element.cells[10].innerHTML)
                     continue;
                 }
                 obj.ws= element.cells[1].innerText;
                 obj.google = element.cells[2].innerText;
                 obj.friendlyName=  element.cells[5].innerText;
+                console.log('profile obj', obj)
                 sfData.profiles.push(obj)
             };
             let message = `email: "${email}";`

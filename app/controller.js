@@ -56,68 +56,80 @@ function makeToday(){
 
 async function makeCards() {
     let appointments = JSON.parse(window.localStorage.getItem('todayCalendar'))
-    let l = appointments.value.length;
-    let cards = []
+    let cards = await calendarLoop(appointments)
 
-    for (let i=0; i<l; i++){
-        //find all calendly made appointemnts
-        let calendly = /calendly.com/i;
-        let appointment = appointments.value[i];
-        let content = appointment.body.content;
-        let search = content.search(calendly) 
-        if ( search > -1) {
-            
-            //get first client that is not me (current user later)
-            let email = appointment.attendees[0].emailAddress.address;
-            let name= appointment.attendees[0].emailAddress.name
-            if (email == open('me').email) { 
-                email = appointment.attendees[1].emailAddress.address
-                name = appointment.attendees[1].emailAddress.name
-            }
-
-            if (resetMode){ window.localStorage.removeItem(email) } //to reset local storage while developing
-            
-            if (!open(email)){
-                //checkSF only if client info is not stored.
-                
-                searchSF(email).then(function(resolve) {
     
-                    let client = open(email)
-                    client.email = email;
-                    client.name = name;
-                    save(email, client)
-                    appointment.client = client;
-                    cards.push(makeFrame(appointment))
-                    
-                }).catch((err)=>{
-                    
-                    let client = {}
-                    client.email = email;
-                    client.name = name
-                    appointment.client = client;
-                    save(email, client)
-                    cards.push(makeFrame(appointment))
-                    loginSF()
-                    return
-                })
-            }
-            else {
-
-                    let client = open(email)
-                    client.email = email;
-                    client.name = name;
-                    save(email, client)
-                    appointment.client = client;
-                    cards.push(makeFrame(appointment))
-            }
-        };
-    }
     cards.sort(compareCards);
+    console.log(cards)
+    console.log('cardlength', cards.length)
+    
     for (card of cards) {
+        console.log('test')
         $('#calendar').append(card)
     }
 
         
+}
+
+function calendarLoop(appointments) {
+    return new Promise((resolve,reject)=> {
+        let l = appointments.value.length;
+        let cards = []
+        for (let i=0; i<l; i++){
+            //find all calendly made appointemnts
+            let calendly = /calendly.com/i;
+            let appointment = appointments.value[i];
+            let content = appointment.body.content;
+            let search = content.search(calendly) 
+            if ( search > -1) {
+                
+                //get first client that is not me (current user later)
+                let email = appointment.attendees[0].emailAddress.address;
+                let name= appointment.attendees[0].emailAddress.name
+                if (email == open('me').email) { 
+                    email = appointment.attendees[1].emailAddress.address
+                    name = appointment.attendees[1].emailAddress.name
+                }
+    
+                if (resetMode){ window.localStorage.removeItem(email) } //to reset local storage while developing
+                
+                if (!open(email)){
+                    //checkSF only if client info is not stored.
+                    
+                    searchSF(email).then(function(resolve) {
+        
+                        let client = open(email)
+                        client.email = email;
+                        client.name = name;
+                        save(email, client)
+                        appointment.client = client;
+                        cards.push(makeFrame(appointment))
+                        
+                    }).catch((err)=>{
+                        
+                        let client = {}
+                        client.email = email;
+                        client.name = name
+                        appointment.client = client;
+                        save(email, client)
+                        cards.push(makeFrame(appointment))
+                        loginSF()
+                        return
+                    })
+                }
+                else {
+    
+                        let client = open(email)
+                        client.email = email;
+                        client.name = name;
+                        save(email, client)
+                        appointment.client = client;
+                        cards.push(makeFrame(appointment))
+                }
+            };
+        }
+        resolve(cards)
+    })
 }
 
 function loginSF(){
