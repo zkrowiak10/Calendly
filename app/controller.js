@@ -129,6 +129,7 @@ function calendarLoop(appointments) {
             };
         }
         resolve(cards)
+        
     })
 }
 
@@ -220,4 +221,8 @@ function compareCards(a, b) {
     dateA = new Date (a.data('time'))
     dateB = new Date (b.data('time'))
     return dateA.getTime() - dateB.getTime()
+}
+
+function logger(message) {
+    if (loo)
 }

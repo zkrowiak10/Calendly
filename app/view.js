@@ -62,10 +62,12 @@ function makeFrame(event){
       
     })
     
+    
       //cardInfo.text(JSON.stringify(event.profiles))
     
     let cardInfo = makeCardInfo(event.client)
-    card.append(cardInfo.hide())
+    
+    card.append(cardInfo)
       
     
     
@@ -76,7 +78,7 @@ function makeFrame(event){
 //$('document').ready($('body').append(makeFrame(testEvent)))
 
 function makeCardInfo(client) {
-  let cardInfo =$('<div>', {class:"card-body", syle:"display:inline; border-style:inset"})
+  let cardInfo =$('<div>', {class:"card-body", style:"display:none"})
   if (!client.profiles){
     cardInfo.text('Not Synced to Salesforce')
   }
