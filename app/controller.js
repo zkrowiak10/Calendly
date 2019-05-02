@@ -1,7 +1,7 @@
 resetMode=false;
 const wordstreamLoginURI ='https://ppc.wordstream.com/admin/product_login/'
 const googleURI = 'https://ads.google.com/aw/overview?__e='
-
+let logging = true
 
 
 
@@ -36,13 +36,13 @@ function makeToday(){
     today.setHours(0,0,0,0)
     checkSF()
     if (window.localStorage.getItem('today')!= today.toDateString()) {
-        console.log('Just logged in, or new day');
+        logger('Just logged in, or new day');
         calendars(today)
         .then(()=> {
             makeCards()
             today = new Date(); //need to reset this value as the calendars function changes the day to get tomorrow's date
             today.setHours(0,0,0,0)
-            console.log(today.toDateString())
+            logger(today.toDateString())
             window.localStorage.setItem('today',today.toDateString())
         })
     }
@@ -60,11 +60,11 @@ async function makeCards() {
 
     
     cards.sort(compareCards);
-    console.log(cards)
-    console.log('cardlength', cards.length)
+    logger(cards)
+    logger('cardlength', cards.length)
     
     for (card of cards) {
-        console.log('test')
+        logger('test')
         $('#calendar').append(card)
     }
 
@@ -162,7 +162,7 @@ function makePinningDialogue() {
             alert('This function is only available on Salesforce.')
         }
         var re = /salesforce.com\/(\w*)\?*/;
-        //console.log(re.exec(url))
+        //logger(re.exec(url))
         sfid  = re.exec(url)[1]
         fetch(SFContactList+sfid, {credentials: "include", mode: 'cors'}) //go to list of contacts and return all primary contacts
         .then((response)=>{return response.text()})
@@ -200,7 +200,7 @@ function makePinningDialogue() {
 function customPin(sfid) {
     let email = $('#pinnedDialogue').find("input[name='client']:checked").val()
     let name = $('#pinnedDialogue').find("input[name='client']:checked").data().name
-    //console.log('name' , name.name)
+    //logger('name' , name.name)
     searchSF(email).then(()=>{
         let client = JSON.parse(window.localStorage.getItem(email));
         client.name = name
@@ -216,13 +216,17 @@ function customPin(sfid) {
     })
 
 }
-
+logger('token test' , tokenObj)
 function compareCards(a, b) {
     dateA = new Date (a.data('time'))
     dateB = new Date (b.data('time'))
     return dateA.getTime() - dateB.getTime()
 }
 
-function logger(message) {
-    if (loo)
+function logger(message, object) {
+    if (logging) {
+        if (!object) {console.log(message)}
+        else {console.log(message, object)}
+        
+    }
 }

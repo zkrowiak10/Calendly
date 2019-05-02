@@ -26,17 +26,17 @@ function makeFrame(event){
     header.append(refresh)
     let pin = $('<button style="float:right; display:inline; margin-right:10px; color:0169d8" type="button" class=" png-button"><i class="unpinned fas fa-thumbtack"></i></button>')
     if (client.pinned) {
-      //console.log('this client is pinned')
+      //logger('this client is pinned')
       pin.find('i').toggleClass('pinned')
     }
     
     pin.click(()=>{
       container.find('.unpinned').toggleClass('pinned')
       let pinnedClientsStored = JSON.parse(window.localStorage.getItem('pinnedClients'))
-      //console.log('pinnedCLientStored', pinnedClientsStored)
+      //logger('pinnedCLientStored', pinnedClientsStored)
       let pinnedClients =[]
       if (pinnedClientsStored != null) {pinnedClients = pinnedClientsStored}
-      //console.log('pinnedClients',pinnedClients)
+      //logger('pinnedClients',pinnedClients)
 
       if (client.pinned) {
         let i = pinnedClients.indexOf(event.client.email)
@@ -44,7 +44,7 @@ function makeFrame(event){
         client.pinned = false
       }
       else {
-        //console.log('pinned clients', pinnedClients)
+        //logger('pinned clients', pinnedClients)
         pinnedClients.push(event.client.email)
         client.pinned=true;
         client.name = event.client.name;
@@ -68,6 +68,10 @@ function makeFrame(event){
     let cardInfo = makeCardInfo(event.client)
     
     card.append(cardInfo)
+    $(document).ready(()=> {
+      cardInfo.hide()
+      logger('thisword')
+    })
       
     
     
@@ -78,7 +82,7 @@ function makeFrame(event){
 //$('document').ready($('body').append(makeFrame(testEvent)))
 
 function makeCardInfo(client) {
-  let cardInfo =$('<div>', {class:"card-body", style:"display:none"})
+  let cardInfo =$('<div>', {class:"card-body"})
   if (!client.profiles){
     cardInfo.text('Not Synced to Salesforce')
   }
@@ -148,16 +152,21 @@ async function refreshCard(card, cardInfo, event){
   cardInfo.children().remove()
   let spinner = makeSpinner()
   cardInfo.append(spinner)
-  console.log('event in refresh: ', event)
+  logger('event in refresh: ', event)
   
   let status = await checkSF();
   if(status){loginSF(); return}
   else{
-    parseSFID(event.client.sfid, email)
+    searchSF(email)
       .then(()=>{
-        let newcardInfo= makeCardInfo(event.client)
+        let client = open(email)
+        logger(client)
+        let newcardInfo= makeCardInfo(client)
+        newcardInfo.css("display", "block")
+        logger('newCardInfo', newcardInfo)
         cardInfo.children().remove()
         cardInfo.append(newcardInfo)
+        cardInfo = newcardInfo
 
       }
       )
@@ -168,7 +177,7 @@ async function refreshCard(card, cardInfo, event){
 async function refreshPinnedCard(card, pinnedCardInfo){
   let email = card.data('email')
   let client = open(email)
-  console.log('client is', client)
+  logger('client is', client)
   window.localStorage.removeItem(email)
   pinnedCardInfo.children().remove()
   let spinner = makeSpinner()

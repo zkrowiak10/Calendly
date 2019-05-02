@@ -21,7 +21,7 @@ async function searchSF(email){
     
     //check that contact data is not in existence
     /*if (window.localStorage.getItem(email)){
-        //console.log('contact data already exists')
+        //logger('contact data already exists')
         return
     }*/
 
@@ -29,7 +29,7 @@ async function searchSF(email){
         fetch(target, {credentials: "include", mode: 'cors'}).then(function(response) {
             return response.text()})
         .then(function(text){
-            ////console.log(text)
+            ////logger(text)
             let error = 'redirectOnLoad()';
             let checker = text.search(error);
             let parser = new DOMParser();
@@ -37,7 +37,7 @@ async function searchSF(email){
             if (checker!=-1){
                 //alert('You are not logged in. Please go to salesforce.com and log in')
                 resolve(false)
-                //s//console.log('resolved false')
+                //s//logger('resolved false')
                 return
             }
             try {
@@ -45,18 +45,18 @@ async function searchSF(email){
             }
             catch(err){
                 let message = err + '. Error tiere 1 email is:' + email;
-                //console.log(message)
+                //logger(message)
                 try{
                     hrf = doc.getElementById("Contact_body").getElementsByTagName('table')[0].rows[1].cells[2].getElementsByTagName('a')[0].getAttribute('href');
                 }
                 catch(err){
                     let message = err + '.Error tier 2 email is:' + email;
-                    //console.log(message)
+                    //logger(message)
                 }
             }
             let sfid = hrf.split('?')[0];
             sfid = sfid.slice(1);
-            //console.log('sfid',sfid)
+            //logger('sfid',sfid)
             sfData.sfid = sfid;
             window.localStorage.setItem(email,JSON.stringify(sfData));
             parseSFID(sfid, email)
@@ -83,25 +83,25 @@ async function parseSFID(hrf,email) {
              //was let profiles = doc.getElementById(id).getElementsByClassName("list")[0].rows
             let company = doc.getElementById("acc2_ileinner").innerText.replace("[View Hierarchy]","").trim();
             let l = profiles.length;
-            console.log('length of profiles', l)
-            ////console.log('in Salesforce.js, company:', company)
+            logger('length of profiles', l)
+            ////logger('in Salesforce.js, company:', company)
             sfData.company = company;
             sfData.profiles =[];
             for (let i=1; i<l; i++) {
                 let obj = {}
                 let element= profiles[i];
                 if  (element.cells[9].innerHTML != '&nbsp;'){
-                    ////console.log(`Email = ${email}; this text should be a date`,element.cells[10].innerHTML)
+                    ////logger(`Email = ${email}; this text should be a date`,element.cells[10].innerHTML)
                     continue;
                 }
                 obj.ws= element.cells[1].innerText;
                 obj.google = element.cells[2].innerText;
                 obj.friendlyName=  element.cells[5].innerText;
-                console.log('profile obj', obj)
+                logger('profile obj', obj)
                 sfData.profiles.push(obj)
             };
             let message = `email: "${email}";`
-            ////console.log(message,sfData)
+            ////logger(message,sfData)
             
             
             window.localStorage.setItem(email,JSON.stringify(sfData));
@@ -116,24 +116,24 @@ async function parseSFID(hrf,email) {
 
 function checkSF(){
     return new Promise((resolve,reject)=>{
-        ////console.log('promise')
+        ////logger('promise')
         fetch("https://wordstream.my.salesforce.com/", {credentials: "include", mode: 'cors'}).then(function(response) {
             return response.text()})
         .then(function(text){
-            ////console.log("checkSFText",text)
+            ////logger("checkSFText",text)
             let error = 'redirectOnLoad()';
             let error2 = 'Login to your Salesforce Customer Account'
             let checker = text.search(error);
             let checker2 = text.search(error2)
-            ////console.log('checker', checker)
-            ////console.log('checker2',checker2)
+            ////logger('checker', checker)
+            ////logger('checker2',checker2)
             if (checker!=-1 || checker2 != -1){
-                ////console.log('true')
+                ////logger('true')
                 loginSF()
                 resolve(true)
             }
             else {
-                ////console.log('false')
+                ////logger('false')
                 resolve(false)
             }
         })

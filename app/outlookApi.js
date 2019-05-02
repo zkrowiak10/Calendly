@@ -9,7 +9,7 @@ var tokenObj = JSON.parse(window.localStorage.getItem('tokenObj'));
 
 function checkIn(){
   if (!tokenObj){
-    ////console.log("the token object is undefined, login required",tokenObj)
+    ////logger("the token object is undefined, login required",tokenObj)
     tokenObj={}
     loadingView()
   }
@@ -18,7 +18,7 @@ function checkIn(){
     
     window.localStorage.setItem('loggedIn',true)
     
-    ////console.log('logged in',tokenObj)
+    ////logger('logged in',tokenObj)
     $('#logout').show();
     $('#login').hide();
     $('#me').text(open('me').name)
@@ -56,12 +56,12 @@ async function calendars(date){
 }
 
 function syncAccount(){
-    ////console.log('beginning')
+    ////logger('beginning')
     //loadingView();
     if (!window.localStorage.getItem('tokenObj')) {            
         let requestURL = {'url': buildAuthUrl(), 'interactive':true}
         chrome.identity.launchWebAuthFlow(requestURL,function(response){
-            console.log('new respons', response)
+            logger('new respons', response)
             let params = parseHashParams(response);
             let code = params.code;
             let formP = buildCodeAuthUrl(code);
@@ -74,7 +74,7 @@ function syncAccount(){
               data: formP
 
             }).then((response)=>{
-              console.log('ajax response: ', response)
+              logger('ajax response: ', response)
               handleTokenResponse(response);
               window.localStorage.setItem('tokenObj', JSON.stringify(tokenObj))
             }).done(function() {
@@ -85,7 +85,7 @@ function syncAccount(){
                             "Authorization": "Bearer " + tokenObj.accessToken,
                             }
                       }).done(function(data){
-                      //console.log('me', data)
+                      //logger('me', data)
                       let me = {}
                       me.email = data.mail 
                       me.name = data.displayName
@@ -97,7 +97,7 @@ function syncAccount(){
             
             
         })/*.done(function(data){
-               //console.log('me', data)
+               //logger('me', data)
                let me = {}
                me.email = data.mail 
                me.name = data.displayName
@@ -108,18 +108,18 @@ function syncAccount(){
         })*/
       
           
-            ////console.log('stored')
+            ////logger('stored')
             $('#login').hide();
             $('#logout').show();
             //loadingView();
         }
     
     else{
-        ////console.log('already logged in')
+        ////logger('already logged in')
         $('#return').text('already in')
         $('#login').hide();
         $('#logout').show();
-        ////console.log(JSON.toString(tokenObj))
+        ////logger(JSON.toString(tokenObj))
        // loadingView();
     }
 }
@@ -132,7 +132,7 @@ async function getAccessToken(callback) {
   // Do we have a token already?
   if (tokenObj.accessToken && !isExpired) {
     // Just return what we have
-    ////console.log('access token exists and isnt expired')
+    ////logger('access token exists and isnt expired')
     if (callback) {
       callback();
     }
@@ -153,7 +153,7 @@ function refreshToken() {
       data: refresh
     }
     ).then((response)=>{
-      //console.log('refresh response: ', response)
+      //logger('refresh response: ', response)
       handleTokenResponse(response);
       window.localStorage.setItem('tokenObj', JSON.stringify(tokenObj))
       resolve();
@@ -171,7 +171,7 @@ function logout(){
   $("#calendar").children().remove()
   $("#pinned").children().remove()
   window.localStorage.setItem('loggedIn',false)
-  //console.log(tokenObj)
+  //logger(tokenObj)
   $('#login').show();
   $('#logout').hide();
   $('#me').text('')
@@ -207,7 +207,7 @@ function buildAuthUrl() {
     nonce: sessionStorage.authNonce,
     response_mode: 'fragment'
   };
-  //console.log(redirectUri)
+  //logger(redirectUri)
   
     return authEndpoint + $.param(authParams);
   }
@@ -228,7 +228,7 @@ function buildAuthUrl() {
       client_secret: "ryztjeBLFH66]:~xWIX066$",
       
     };
-    //console.log(redirectUri)
+    //logger(redirectUri)
     
       return $.param(authParams);
     }
@@ -246,7 +246,7 @@ function buildAuthUrl() {
         client_secret: "ryztjeBLFH66]:~xWIX066$",
         
       };
-      //console.log(redirectUri)
+      //logger(redirectUri)
       
         return $.param(authParams);
       }
@@ -376,7 +376,7 @@ function open(key) {
   if (object == 'undefined' || !object) {
     return null
   }
-  //console.log('key and object', key, object)
+  //logger('key and object', key, object)
   return JSON.parse(object)
 }
 
