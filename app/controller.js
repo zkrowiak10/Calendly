@@ -154,7 +154,8 @@ function makePinned(){
         }
     }
 }
-
+let tabs = chrome.tabs.query({'active':true, 'currentWindow':true}, (tabs)=>{ logger(tabs)})
+//logger('tabs', tabs)
 function makePinningDialogue() {
     chrome.tabs.query({'active':true, 'currentWindow':true}, (tab)=>{
         let url = tab[0].url
@@ -229,4 +230,14 @@ function logger(message, object) {
         else {console.log(message, object)}
         
     }
+}
+
+function calendlyMessage(email) {
+    let client = open(email)
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+        logger('in message sender', tabs)
+        chrome.tabs.sendMessage(tabs[0].id, {name: client.name, email: client.email})
+
+
+    })
 }

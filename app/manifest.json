@@ -10,9 +10,12 @@
     "browser_action": {
         "default_popup": "popup.html"
       },
-     
-    "permissions" : ["contextMenus","storage" , "tabs", "storage","https://wordstream.my.salesforce.com/*", 
-      "https://en.wikipedia.org/*","identity", "https://login.microsoftonline.com/*"
+     "content_scripts": [{
+       "matches": ["https://calendly.com/*"],
+       "js" : ["content.js"]
+     }],
+    "permissions" : ["contextMenus","storage" , "tabs", "activeTab", "storage","https://wordstream.my.salesforce.com/*", 
+      "https://calendly.com/*","identity", "https://login.microsoftonline.com/*"
      ]
 
 

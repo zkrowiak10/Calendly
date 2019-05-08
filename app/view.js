@@ -16,20 +16,27 @@ function makeFrame(event){
     <a syle="display:inline"  href="mailto: ${event.client.email}" 
     target="_blank" ><i class="fas fa-envelope"></i></a>`)
     
-    refresh = $('<button style="float:right; display:inline" type="button" class="png-button"><i  style="color:0169d8" class="fas fa-sync-alt"></button>')
+    //header buttons
+    refresh = $('<button style="float:right; display:inline; margin-left:10px" type="button" class="png-button"><i  style="color:0169d8" class="fas fa-sync-alt"></button>')
     refresh.click(()=>{refreshCard(card, cardInfo, event)})
     show = $(`<button style="float:right; display:inline; margin-left:10px" type="button" class="arrow png-button"></button>`)
     arrow = $(`<i style="color:0169d8" class="fas fa-chevron-left"></i>`)
+    inject = $('<button style="float:right; display:inline;margin-left:10px" type="button" class="png-button"><i data-toggle="tooltip" data-placement="top" title="Copy Contact To Calendly" style="color:0169d8" class="fas fa-copy png-button"></i></button>')
     show.append(arrow)
-
+    let pin = $('<button style="float:right; display:inline; margin-right:10px; color:0169d8" type="button" class=" png-button"><i class="unpinned fas fa-thumbtack"></i></button>')
+    //putting buttons in header
     header.append(show)
     header.append(refresh)
-    let pin = $('<button style="float:right; display:inline; margin-right:10px; color:0169d8" type="button" class=" png-button"><i class="unpinned fas fa-thumbtack"></i></button>')
+    header.append(inject)
+    header.append(pin) 
+    
+    
     if (client.pinned) {
       //logger('this client is pinned')
       pin.find('i').toggleClass('pinned')
     }
     
+    //listeners
     pin.click(()=>{
       container.find('.unpinned').toggleClass('pinned')
       let pinnedClientsStored = JSON.parse(window.localStorage.getItem('pinnedClients'))
@@ -53,19 +60,32 @@ function makeFrame(event){
       window.localStorage.setItem('pinnedClients',JSON.stringify(pinnedClients))
 
     })
-    header.append(pin)
-    card.append(header)
-    container.append(card)
+    
     show.on('click',()=>{
       cardInfo.slideToggle()
       container.find('.arrow').toggleClass('rotate')
       
     })
+
+    inject.click( ()=> {
+      let email = card.data('email')
+      logger('card email in pinned', email)
+      calendlyMessage(email)
+    })
+    
+
+    //make card content
+    let cardInfo = makeCardInfo(event.client)
+    
+    
+    //tying it together
+    card.append(header)
+    container.append(card)
+    
     
     
       //cardInfo.text(JSON.stringify(event.profiles))
     
-    let cardInfo = makeCardInfo(event.client)
     
     card.append(cardInfo)
     $(document).ready(()=> {
