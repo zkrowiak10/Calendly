@@ -11,6 +11,7 @@ const SFContactList = "https://wordstream.my.salesforce.com/003?rlid=RelatedCont
 
 
 async function searchSF(email){
+    logger("searching SF for " + email)
     let base = 'https://wordstream.my.salesforce.com/search/SearchResults?searchType=2&str=';
     let target = encodeURI(base+email);
     let sfData = {};
@@ -45,18 +46,18 @@ async function searchSF(email){
             }
             catch(err){
                 let message = err + '. Error tiere 1 email is:' + email;
-                //logger(message)
+                logger("for searchSF Account body with client " + email + " error " + message)
                 try{
                     hrf = doc.getElementById("Contact_body").getElementsByTagName('table')[0].rows[1].cells[2].getElementsByTagName('a')[0].getAttribute('href');
                 }
-                catch(err){
-                    let message = err + '.Error tier 2 email is:' + email;
-                    //logger(message)
+                catch(err2){
+                    let message = err2 + '.Error tier 2 email is:' + email;
+                    logger("for searchSF  Contact body with client " + email + " error " + message)
                 }
             }
             let sfid = hrf.split('?')[0];
             sfid = sfid.slice(1);
-            //logger('sfid',sfid)
+            logger('sfid',sfid)
             sfData.sfid = sfid;
             window.localStorage.setItem(email,JSON.stringify(sfData));
             parseSFID(sfid, email)
@@ -65,14 +66,16 @@ async function searchSF(email){
         
     })
     let result = await promise
+    logger("finished searching SF for email " + email)
     return result;
 }
 
-async function parseSFID(hrf,email) {
+async function parseSFID(hrf, email) {
+    logger("Parsing sfid" + hrf + "for " + email)
     let sfData = JSON.parse(window.localStorage.getItem(email))
     if(!sfData) { sfData={};}
     let profiles = await parseProfiles(hrf);
-    
+    logger("Returned with profiles" + profiles)
     let promise = new Promise((resolve,reject)=> {
         fetch(SFDC+hrf,{credentials: "include", mode: 'cors'})
         .then(response=>{return response.text()})
@@ -110,6 +113,7 @@ async function parseSFID(hrf,email) {
     })
     
     let result = await promise;
+    logger("Finished parsing SFID for client " + email)
     return result;
 }
         
@@ -117,10 +121,10 @@ async function parseSFID(hrf,email) {
 function checkSF(){
     return new Promise((resolve,reject)=>{
         ////logger('promise')
-        fetch("https://wordstream.my.salesforce.com/", {credentials: "include", mode: 'cors'}).then(function(response) {
+        fetch("https://wordstream.my.salesforce.com/home/home.jsp", {credentials: "include", mode: 'cors'}).then(function(response) {
             return response.text()})
         .then(function(text){
-            ////logger("checkSFText",text)
+            //logger("checkSFText",text)
             let error = 'redirectOnLoad()';
             let error2 = 'Login to your Salesforce Customer Account'
             let checker = text.search(error);
@@ -128,7 +132,7 @@ function checkSF(){
             ////logger('checker', checker)
             ////logger('checker2',checker2)
             if (checker!=-1 || checker2 != -1){
-                ////logger('true')
+                logger('true')
                 loginSF()
                 resolve(true)
             }
@@ -142,6 +146,7 @@ function checkSF(){
 
 
 async function parseProfiles(hrf){
+    logger("parsing profiles for " + hrf)
     let target = "https://wordstream.my.salesforce.com/a06?rlid=00N80000004l7nV&id=" + hrf; 
     return fetch(target,{credentials: "include", mode: 'cors'})
     .then((response)=>{return response.text()})

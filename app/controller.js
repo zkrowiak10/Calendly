@@ -60,11 +60,9 @@ async function makeCards() {
 
     
     cards.sort(compareCards);
-    logger(cards)
-    logger('cardlength', cards.length)
+    
     
     for (card of cards) {
-        logger('test')
         $('#calendar').append(card)
     }
 
@@ -72,6 +70,7 @@ async function makeCards() {
 }
 
 function calendarLoop(appointments) {
+    logger("starting calendar loop")
     return new Promise((resolve,reject)=> {
         let l = appointments.value.length;
         let cards = []
@@ -92,13 +91,15 @@ function calendarLoop(appointments) {
                 }
     
                 if (resetMode){ window.localStorage.removeItem(email) } //to reset local storage while developing
-                
-                if (!open(email)){
+                let client = open(email);
+                logger("Client email " + email + " object " + client)
+                if (!client || JSON.stringify(client) == "[object Object]"){
                     //checkSF only if client info is not stored.
                     
                     searchSF(email).then(function(resolve) {
-        
+                       
                         let client = open(email)
+                        logger('In controller, returned from searchSF with object', client)
                         client.email = email;
                         client.name = name;
                         save(email, client)
@@ -106,14 +107,13 @@ function calendarLoop(appointments) {
                         cards.push(makeFrame(appointment))
                         
                     }).catch((err)=>{
-                        
+                        logger('Error in controller when searching sf', err)
                         let client = {}
                         client.email = email;
                         client.name = name
                         appointment.client = client;
                         save(email, client)
                         cards.push(makeFrame(appointment))
-                        loginSF()
                         return
                     })
                 }

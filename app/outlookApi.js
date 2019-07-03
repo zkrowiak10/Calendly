@@ -31,7 +31,7 @@ function checkIn(){
 //testing me function
 
 async function calendars(date){
-  
+  logger('In Calendars, getting:', date)
   date.setHours(0,0,0,0)//set date to midnight
   today = date.toISOString();//create datestring
   let day = date.getDate()
@@ -40,13 +40,14 @@ async function calendars(date){
   let response = new Promise((resolve,reject) => { getAccessToken(()=>{
     $.ajax({
       type: 'GET',
-      url: calendar_url + `startdatetime=${today}&enddatetime=${tomorrow}&$top=10`,
+      url: calendar_url + `startdatetime=${today}&enddatetime=${tomorrow}`,
       headers: {
           "Authorization": "Bearer " + tokenObj.accessToken,
           'prefer': 'outlook.timezone="Eastern Standard Time"'
           }
     }).done(function(data){
       window.localStorage.setItem('todayCalendar',JSON.stringify(data))
+      logger('TodayCalendar Saved:', data)
       resolve(data)
       })
   })})

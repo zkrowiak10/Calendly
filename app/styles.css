@@ -9,11 +9,21 @@
     float: right;
 
 }
+
+.png-button:hover{
+    border: none;
+    padding: 0;
+    background:none;
+    outline: none;
+    filter: brightness(85%);
+
+}
 .png-button:active{
     border: none;
     padding: 0;
     background:none;
     outline: none;
+    
 
 }
 .png-button:focus{

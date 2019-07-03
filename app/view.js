@@ -4,6 +4,10 @@
 
 function makeFrame(event){
     let client = open(event.client.email)
+    if (!client) {logger("No object associated with this email: " + event.client.email)}
+    else {
+      logger("Making frame with email " + event.client.email + "and client: ", client)
+    }
     let container = $("<div>", {class: 'card', style: "margin:15px"})
     let startTime = parseDatetime(event.start.dateTime)
     let card= $("<div>", {class: 'card '})
@@ -89,8 +93,12 @@ function makeFrame(event){
     
     card.append(cardInfo)
     $(document).ready(()=> {
+      if (!cardInfo) {
+        logger("No Card Info for " + client);
+        return
+      }
       cardInfo.hide()
-      logger('thisword')
+      
     })
       
     
@@ -102,9 +110,14 @@ function makeFrame(event){
 //$('document').ready($('body').append(makeFrame(testEvent)))
 
 function makeCardInfo(client) {
+  logger("Making cardInfo for " + client.email)
   let cardInfo =$('<div>', {class:"card-body"})
   if (!client.profiles){
+    logger("no profiles")
     cardInfo.text('Not Synced to Salesforce')
+  }
+  if (checkFields(client)) {
+    logger("client fields are incomplete", client)
   }
   else {
     //create top row buttons
@@ -122,7 +135,10 @@ function makeCardInfo(client) {
 
     let table = $("<table>", {class:"table table-striped", style:"margin-top:20px; ; box-shadow: 1px 1px 3px grey; border-radius: 5px"})  
     let count =0;
-    for (profile of client.profiles){
+    logger("Entering profiles loop in makeCardInfo profile array: ", client.profiles)
+    if (client.profiles) {
+      for (var i = 0; i < client.profiles.length; i++){
+        profile = client.profiles[i]
         let row = $("<tr>")
         /*if (count==0) {
           row.attr({'id': sfid, )
@@ -142,6 +158,8 @@ function makeCardInfo(client) {
         
         table.append($("<tbody>").append(row))
     }
+    }
+    
     
     cardInfo.append(table)
     return cardInfo
@@ -169,22 +187,26 @@ function createTab(url){
 
 async function refreshCard(card, cardInfo, event){
   let email = card.data('email')
-  cardInfo.children().remove()
+  logger("Refreshing" + email)
+  if (!email) {logger("This card has no email")}
+  let children = cardInfo.children();
+  if (children) {children.remove()}
   let spinner = makeSpinner()
   cardInfo.append(spinner)
   logger('event in refresh: ', event)
   
   let status = await checkSF();
-  if(status){loginSF(); return}
+  if(status){ return}
   else{
+    logger("In refresh. Searching SF...")
+    window.localStorage.removeItem(email)
     searchSF(email)
       .then(()=>{
         let client = open(email)
-        logger(client)
+        logger("client reopened in refresh", client)
         let newcardInfo= makeCardInfo(client)
         newcardInfo.css("display", "block")
         logger('newCardInfo', newcardInfo)
-        cardInfo.children().remove()
         cardInfo.append(newcardInfo)
         cardInfo = newcardInfo
 
@@ -204,7 +226,7 @@ async function refreshPinnedCard(card, pinnedCardInfo){
   pinnedCardInfo.append(spinner)
   
   let status = await checkSF();
-  if(status){loginSF(); return}
+  if(status) { return}
   else{
     parseSFID(client.sfid, email)
       .then(()=>{
@@ -226,36 +248,7 @@ function makeSpinner(){
   spinnerBorder.append(spinner);
   return spinnerBorder
 }
-let testEvent ={
-  "start": { 
-      "dateTime": "2019-03-27T00:36:45.919Z",  
-      "timeZone": "Pacific Standard Time" 
-  },  
-    "end": { 
-      "dateTime": "2019-03-27T00:37:45.919Z",  
-      "timeZone": "Pacific Standard Time" 
-      },
-  
-    'attendees' : [ 
-      { 
-        "type": "required",  
-        "emailAddress": { 
-          "name": "Samantha Booth",
-          "address": "samanthab@contoso.onmicrosoft.com" 
-          }
-       } ],
-  'company': 'Sample Inc',
-  'profiles' :[
-      {
-      'wordStream': 'testProfile',
-      'google': '0000000000'},
-      {'wordStream2': 'testProfile',
-      'google2': '0000000000'
-      }
-      ]
-       
-    
-}
+
 
 function makePinnedCard(client) {
   let container = $("<div>", {class: 'card', style: "margin:15px"})
@@ -357,4 +350,10 @@ function makePinnedCardInfo(client) {
      let re = /<p>Event Name: (\w* \w* \w*)\W*/i
      result = re.exec(body)[1]
      return result
+  }
+
+  function checkFields(client) {
+    if (!client.sfid) {
+      return false
+    }
   }
