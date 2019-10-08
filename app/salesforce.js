@@ -8,7 +8,7 @@
 let SFDC = "https://wordstream.my.salesforce.com/"
 let gainsight ="https://wordstream--jbcxm.na66.visual.force.com/apex/JBCXM__customersuccess360?cid="
 const SFContactList = "https://wordstream.my.salesforce.com/003?rlid=RelatedContactList&id="
-
+//a fork was made
 
 async function searchSF(email){
     let base = 'https://wordstream.my.salesforce.com/search/SearchResults?searchType=2&str=';
